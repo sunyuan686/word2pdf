@@ -167,6 +167,42 @@ logging.level.com.suny.word2pdf=DEBUG
    - 查看详细错误日志
    - 确认文件完整性
 
+## 🈲 中文支持优化
+
+### v1.0.1 更新 - 中文显示问题修复
+
+**问题分析:**
+- POI转换器：无法正确显示中文字符，中文内容丢失
+- Docx4j转换器：中文字符全部显示为"#"符号
+
+**优化方案:**
+
+#### POI转换器优化
+- ✅ 配置系统字体路径支持
+- ✅ 自动注册macOS常用中文字体
+- ✅ 支持字体: Arial Unicode MS, PingFang SC, Hiragino Sans GB
+- ✅ 增加字体配置日志记录
+
+#### Docx4j转换器优化  
+- ✅ 实现智能字体映射器(IdentityPlusMapper)
+- ✅ 自动发现可用中文字体
+- ✅ 配置多种中文字体映射
+- ✅ 支持字体: 宋体、黑体、微软雅黑、苹方等
+- ✅ 增加字体检测和映射日志
+
+#### LibreOffice转换器
+- ✅ 原生支持中文，无需额外配置
+
+### 中文支持验证
+
+测试中文文档转换时，查看日志确认字体配置：
+
+```
+DEBUG c.s.w.c.impl.PoiWordToPdfConverter     : Found Chinese font: /System/Library/Fonts/Arial Unicode MS.ttf
+DEBUG c.s.w.c.impl.Docx4jWordToPdfConverter  : Found available Chinese font: Arial Unicode MS
+DEBUG c.s.w.c.impl.Docx4jWordToPdfConverter  : Mapped font '宋体' to 'Arial Unicode MS'
+```
+
 ## 🎉 成功总结
 
 恭喜！Word2PDF转换服务已成功实现并运行，具备：
@@ -177,5 +213,6 @@ logging.level.com.suny.word2pdf=DEBUG
 - ✅ 完善的REST API
 - ✅ 生产就绪的代码质量
 - ✅ 完整的文档和使用指南
+- ✅ **完善的中文字符支持**
 
-现在可以开始测试和使用Word转PDF转换功能了！ 
+现在可以开始测试和使用Word转PDF转换功能了，包括含有中文内容的文档！ 

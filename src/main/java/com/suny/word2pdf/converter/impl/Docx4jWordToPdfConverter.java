@@ -4,6 +4,9 @@ import com.suny.word2pdf.converter.WordToPdfConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.docx4j.Docx4J;
 import org.docx4j.convert.out.FOSettings;
+import org.docx4j.fonts.IdentityPlusMapper;
+import org.docx4j.fonts.Mapper;
+import org.docx4j.fonts.PhysicalFonts;
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
 import org.springframework.stereotype.Component;
 
@@ -32,6 +35,9 @@ public class Docx4jWordToPdfConverter implements WordToPdfConverter {
         try {
             WordprocessingMLPackage wordPackage = WordprocessingMLPackage.load(inputStream);
             
+            // 配置中文字体支持
+            configureFontMapper(wordPackage);
+            
             FOSettings foSettings = createFoSettings();
             
             try (FileOutputStream outputStream = new FileOutputStream(outputFile)) {
@@ -56,6 +62,96 @@ public class Docx4jWordToPdfConverter implements WordToPdfConverter {
             log.warn("Docx4j converter not available: {}", e.getMessage());
             return false;
         }
+    }
+    
+    /**
+     * 配置字体映射以支持中文显示
+     * 
+     * @param wordPackage Word文档包
+     */
+    private void configureFontMapper(WordprocessingMLPackage wordPackage) {
+        try {
+            // 发现系统字体
+            PhysicalFonts.discoverPhysicalFonts();
+            
+            // 创建字体映射器
+            Mapper fontMapper = new IdentityPlusMapper();
+            wordPackage.setFontMapper(fontMapper);
+            
+            // 配置中文字体映射
+            configureFontMapping(fontMapper);
+            
+            log.debug("Chinese font mapper configured successfully for Docx4j converter");
+        } catch (Exception e) {
+            log.warn("Failed to configure font mapper for Docx4j converter: {}", e.getMessage());
+        }
+    }
+    
+    /**
+     * 配置中文字体映射
+     * 
+     * @param fontMapper 字体映射器
+     */
+    private void configureFontMapping(Mapper fontMapper) {
+        try {
+            // 配置常见中文字体映射
+            String[] chineseFontNames = {
+                "SimSun", "宋体",
+                "SimHei", "黑体", 
+                "Microsoft YaHei", "微软雅黑",
+                "PingFang SC", "苹方",
+                "Hiragino Sans GB", "冬青黑体简体中文",
+                "Arial Unicode MS"
+            };
+            
+            // 查找可用的中文字体
+            String availableChineseFont = findAvailableChineseFont();
+            
+            if (availableChineseFont != null) {
+                // 映射所有中文字体名称到可用字体
+                for (String fontName : chineseFontNames) {
+                    try {
+                        fontMapper.put(fontName, PhysicalFonts.get(availableChineseFont));
+                        log.debug("Mapped font '{}' to '{}'", fontName, availableChineseFont);
+                    } catch (Exception e) {
+                        log.debug("Failed to map font '{}': {}", fontName, e.getMessage());
+                    }
+                }
+            } else {
+                log.warn("No suitable Chinese font found for Docx4j converter");
+            }
+        } catch (Exception e) {
+            log.warn("Failed to configure Chinese font mapping: {}", e.getMessage());
+        }
+    }
+    
+    /**
+     * 查找可用的中文字体
+     * 
+     * @return 可用的中文字体名称，如果没有找到则返回null
+     */
+    private String findAvailableChineseFont() {
+        String[] candidateFonts = {
+            "Arial Unicode MS",
+            "PingFang SC",
+            "Hiragino Sans GB",
+            "Microsoft YaHei",
+            "SimSun",
+            "SimHei"
+        };
+        
+        for (String fontName : candidateFonts) {
+            try {
+                if (PhysicalFonts.get(fontName) != null) {
+                    log.debug("Found available Chinese font: {}", fontName);
+                    return fontName;
+                }
+            } catch (Exception e) {
+                log.debug("Font '{}' not available: {}", fontName, e.getMessage());
+            }
+        }
+        
+        return null;
     }
     
     /**

@@ -195,11 +195,11 @@ ResponseEntity<ConversionResult> response = restTemplate.postForEntity(
 
 ## 转换器对比
 
-| 转换器 | 优势 | 劣势 | 适用场景 |
-|--------|------|------|----------|
-| **POI** | - 纯Java实现<br>- 无外部依赖<br>- 格式支持好 | - 转换速度较慢<br>- 内存占用较高 | 简单文档转换 |
-| **Docx4j** | - 功能强大<br>- 格式保真度高<br>- 可定制性强 | - 学习曲线陡峭<br>- 复杂文档可能出错 | 复杂格式文档 |
-| **LibreOffice** | - 转换质量最高<br>- 格式支持最全<br>- 速度较快 | - 需要安装LibreOffice<br>- 系统依赖性强 | 生产环境推荐 |
+| 转换器 | 优势 | 劣势 | 适用场景 | 中文支持 |
+|--------|------|------|----------|----------|
+| **POI** | - 纯Java实现<br>- 无外部依赖<br>- 格式支持好 | - 转换速度较慢<br>- 内存占用较高 | 简单文档转换 | ✅ 已优化字体配置 |
+| **Docx4j** | - 功能强大<br>- 格式保真度高<br>- 可定制性强 | - 学习曲线陡峭<br>- 复杂文档可能出错 | 复杂格式文档 | ✅ 已配置中文字体映射 |
+| **LibreOffice** | - 转换质量最高<br>- 格式支持最全<br>- 速度较快 | - 需要安装LibreOffice<br>- 系统依赖性强 | 生产环境推荐 | ✅ 原生支持中文 |
 
 ## 性能调优
 
@@ -251,6 +251,46 @@ grep "ERROR" logs/application.log
 - 错误详情和堆栈跟踪
 - 性能统计信息
 
+## 中文支持
+
+本项目已全面优化了中文文档的转换支持，解决了各转换器的中文显示问题：
+
+### POI转换器中文支持
+
+**问题**: 默认情况下POI转换器无法正确显示中文字符
+**解决方案**: 
+- 自动配置系统字体路径
+- 注册常用中文字体(Arial Unicode MS, PingFang SC, Hiragino Sans GB等)
+- 优化字体映射配置
+
+### Docx4j转换器中文支持
+
+**问题**: 中文字符显示为"#"符号
+**解决方案**:
+- 实现智能字体映射器(IdentityPlusMapper)
+- 自动发现系统可用中文字体
+- 配置多种中文字体映射:
+  - 宋体 (SimSun)
+  - 黑体 (SimHei) 
+  - 微软雅黑 (Microsoft YaHei)
+  - 苹方 (PingFang SC)
+  - 冬青黑体简体中文 (Hiragino Sans GB)
+  - Arial Unicode MS
+
+### LibreOffice转换器
+
+**优势**: 原生支持中文，无需额外配置
+
+### 中文字体检测日志
+
+应用启动时会自动检测可用的中文字体并记录在日志中：
+
+```
+DEBUG c.s.w.c.impl.PoiWordToPdfConverter     : Found Chinese font: /System/Library/Fonts/Arial Unicode MS.ttf
+DEBUG c.s.w.c.impl.Docx4jWordToPdfConverter  : Found available Chinese font: Arial Unicode MS
+DEBUG c.s.w.c.impl.Docx4jWordToPdfConverter  : Mapped font '宋体' to 'Arial Unicode MS'
+```
+
 ## 故障排除
 
 ### 常见问题
@@ -277,6 +317,22 @@ grep "ERROR" logs/application.log
    ```
    解决方案: 增加转换超时时间
    配置项: app.conversion.timeout
+   ```
+
+5. **中文字符显示异常**
+   ```
+   POI转换器: 检查系统字体安装，确保有Arial Unicode MS或其他中文字体
+   Docx4j转换器: 查看日志确认字体映射是否成功配置
+   解决方案: 在macOS上安装额外的中文字体包
+   ```
+
+6. **字体未找到警告**
+   ```
+   日志信息: "No suitable Chinese font found"
+   解决方案: 
+   - macOS: brew install --cask font-microsoft-office
+   - 手动下载安装Arial Unicode MS字体
+   - 使用LibreOffice转换器(原生支持中文)
    ```
 
 ### 调试模式
