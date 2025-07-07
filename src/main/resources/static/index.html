@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word2PDF 转换服务</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .upload-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .converter-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+        .btn-success:hover {
+            background-color: #1e7e34;
+        }
+        .btn-warning {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        .btn-warning:hover {
+            background-color: #e0a800;
+        }
+        .btn-info {
+            background-color: #17a2b8;
+            color: white;
+        }
+        .btn-info:hover {
+            background-color: #117a8b;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .result.success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .result.error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .loading.show {
+            display: block;
+        }
+        input[type="file"] {
+            margin: 10px 0;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+            max-width: 300px;
+        }
+        .api-info {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+        .api-info h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        .api-info code {
+            background-color: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Word2PDF 转换服务</h1>
+        
+        <div class="upload-section">
+            <h3>选择Word文档</h3>
+            <input type="file" id="fileInput" accept=".docx,.doc" />
+            <p>支持 .docx 和 .doc 格式</p>
+        </div>
+        
+        <div class="converter-buttons">
+            <button class="btn-primary" onclick="convert('POI')">POI 转换</button>
+            <button class="btn-success" onclick="convert('Docx4j')">Docx4j 转换</button>
+            <button class="btn-warning" onclick="convert('LibreOffice')">LibreOffice 转换</button>
+            <button class="btn-info" onclick="compareAll()">性能对比</button>
+        </div>
+        
+        <div class="loading" id="loading">
+            <p>转换中，请稍候...</p>
+        </div>
+        
+        <div id="result" class="result" style="display: none;"></div>
+        
+        <div class="api-info">
+            <h3>API 接口信息</h3>
+            <p><strong>基础URL:</strong> <code>http://localhost:8080/api</code></p>
+            <p><strong>获取可用转换器:</strong> <code>GET /convert/converters</code></p>
+            <p><strong>转换文件:</strong> <code>POST /convert/{converter}</code></p>
+            <p><strong>性能对比:</strong> <code>POST /convert/compare</code></p>
+            <p><strong>下载文件:</strong> <code>GET /download/{filename}</code></p>
+        </div>
+    </div>
+
+    <script>
+        function showLoading() {
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('result').style.display = 'none';
+        }
+        
+        function hideLoading() {
+            document.getElementById('loading').classList.remove('show');
+        }
+        
+        function showResult(data, isSuccess = true) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = JSON.stringify(data, null, 2);
+            resultDiv.className = `result ${isSuccess ? 'success' : 'error'}`;
+            resultDiv.style.display = 'block';
+            hideLoading();
+        }
+        
+        function convert(converter) {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('请先选择一个Word文档');
+                return;
+            }
+            
+            showLoading();
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            fetch(`/api/convert/${converter}`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                showResult(data, data.success);
+            })
+            .catch(error => {
+                showResult({error: error.message}, false);
+            });
+        }
+        
+        function compareAll() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('请先选择一个Word文档');
+                return;
+            }
+            
+            showLoading();
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            fetch('/api/convert/compare', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                showResult(data, true);
+            })
+            .catch(error => {
+                showResult({error: error.message}, false);
+            });
+        }
+        
+        // 页面加载时获取可用转换器
+        window.onload = function() {
+            fetch('/api/convert/converters')
+            .then(response => response.json())
+            .then(data => {
+                console.log('可用转换器:', data);
+            })
+            .catch(error => {
+                console.error('获取转换器列表失败:', error);
+            });
+        };
+    </script>
+</body>
+</html> 
