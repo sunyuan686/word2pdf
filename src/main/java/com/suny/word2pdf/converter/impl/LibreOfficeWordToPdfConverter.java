@@ -13,11 +13,20 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
  * 基于LibreOffice的Word转PDF转换器
+ * 
+ * 优化策略：
+ * 1. 使用LibreOffice 7.4+高级PDF导出选项确保样式一致性
+ * 2. 启用字体嵌入避免字体替换问题
+ * 3. 保持原始页面布局和分页不变
+ * 4. 优化图像质量和表格处理
+ * 5. 使用专业级PDF导出过滤器参数
  * 
  * @author suny
  */
@@ -35,14 +44,13 @@ public class LibreOfficeWordToPdfConverter implements WordToPdfConverter {
     
     @Override
     public void convert(InputStream inputStream, File outputFile) throws Exception {
-        log.debug("Starting LibreOffice conversion for file: {}", outputFile.getName());
+        log.info("Starting enhanced LibreOffice conversion with maximum quality settings for file: {}", outputFile.getName());
         
-        // 创建临时输入文件
         File tempInputFile = createTempInputFile(inputStream);
         
         try {
-            executeLibreOfficeConversion(tempInputFile, outputFile);
-            log.debug("LibreOffice conversion completed successfully for file: {}", outputFile.getName());
+            executeHighQualityLibreOfficeConversion(tempInputFile, outputFile);
+            log.info("Enhanced LibreOffice conversion completed successfully for file: {}", outputFile.getName());
         } finally {
             cleanupTempFile(tempInputFile);
         }
@@ -62,10 +70,6 @@ public class LibreOfficeWordToPdfConverter implements WordToPdfConverter {
     
     /**
      * 创建临时输入文件
-     * 
-     * @param inputStream 输入流
-     * @return 临时文件
-     * @throws Exception 异常
      */
     private File createTempInputFile(InputStream inputStream) throws Exception {
         String fileName = "temp_" + UUID.randomUUID() + ".docx";
@@ -81,18 +85,16 @@ public class LibreOfficeWordToPdfConverter implements WordToPdfConverter {
     }
     
     /**
-     * 执行LibreOffice转换
+     * 执行高质量LibreOffice转换
      * 
-     * @param inputFile 输入文件
-     * @param outputFile 输出文件
-     * @throws Exception 异常
+     * 使用LibreOffice 7.4+的专业级PDF导出选项确保样式和页面布局完全一致
      */
-    private void executeLibreOfficeConversion(File inputFile, File outputFile) throws Exception {
+    private void executeHighQualityLibreOfficeConversion(File inputFile, File outputFile) throws Exception {
         Path outputDir = outputFile.getParentFile().toPath();
         
-        ProcessBuilder processBuilder = createProcessBuilder(inputFile, outputDir);
+        ProcessBuilder processBuilder = createProfessionalGradeProcessBuilder(inputFile, outputDir);
         
-        log.debug("Executing LibreOffice command: {}", String.join(" ", processBuilder.command()));
+        log.debug("Executing professional-grade LibreOffice command: {}", String.join(" ", processBuilder.command()));
         
         Process process = processBuilder.start();
         
@@ -100,44 +102,108 @@ public class LibreOfficeWordToPdfConverter implements WordToPdfConverter {
         
         if (!finished) {
             process.destroyForcibly();
-            throw new RuntimeException("LibreOffice conversion timeout");
+            throw new RuntimeException("LibreOffice conversion timeout after " + applicationConfig.getConversionTimeout() + "ms");
         }
         
         int exitCode = process.exitValue();
         if (exitCode != 0) {
-            throw new RuntimeException("LibreOffice conversion failed with exit code: " + exitCode);
+            String errorOutput = readProcessErrorOutput(process);
+            throw new RuntimeException("LibreOffice conversion failed with exit code: " + exitCode + 
+                                     ". Error: " + errorOutput);
         }
         
         moveGeneratedPdfToTargetLocation(inputFile, outputFile, outputDir);
     }
     
     /**
-     * 创建进程构建器
+     * 创建专业级进程构建器
      * 
-     * @param inputFile 输入文件
-     * @param outputDir 输出目录
-     * @return 进程构建器
+     * 使用LibreOffice 7.4+的高级PDF导出选项确保最大质量和一致性
      */
-    private ProcessBuilder createProcessBuilder(File inputFile, Path outputDir) {
-        ProcessBuilder processBuilder = new ProcessBuilder(
-                applicationConfig.getLibreOfficePath(),
-                "--headless",
-                "--convert-to", "pdf",
-                "--outdir", outputDir.toString(),
-                inputFile.getAbsolutePath()
+    private ProcessBuilder createProfessionalGradeProcessBuilder(File inputFile, Path outputDir) {
+        List<String> command = Arrays.asList(
+            applicationConfig.getLibreOfficePath(),
+            "--headless",
+            "--invisible",
+            "--nodefault",
+            "--nolockcheck",
+            "--nologo",
+            "--norestore",
+            "--convert-to", buildEnhancedPdfExportFilter(),
+            "--outdir", outputDir.toString(),
+            inputFile.getAbsolutePath()
         );
         
-        processBuilder.redirectErrorStream(true);
+        ProcessBuilder processBuilder = new ProcessBuilder(command);
+        processBuilder.redirectErrorStream(false);
+        
+        // 设置环境变量优化LibreOffice性能和质量
+        processBuilder.environment().put("SAL_USE_VCLPLUGIN", "svp");
+        processBuilder.environment().put("SAL_DISABLE_OPENCL", "true");
+        processBuilder.environment().put("SAL_DISABLE_HUNSPELL", "true");  // 禁用拼写检查提升性能
+        
         return processBuilder;
     }
     
     /**
-     * 移动生成的PDF到目标位置
+     * 构建增强的PDF导出过滤器选项
      * 
-     * @param inputFile 输入文件
-     * @param outputFile 输出文件
-     * @param outputDir 输出目录
-     * @throws Exception 异常
+     * 使用专业级PDF导出参数确保样式、字体、页面布局的最大一致性
+     * 基于LibreOffice 7.4+的writer_pdf_Export高级选项
+     */
+    private String buildEnhancedPdfExportFilter() {
+        return "pdf:writer_pdf_Export:{" +
+                // 字体嵌入设置 - 确保字体一致性
+                "\"EmbedStandardFonts\":{\"type\":\"boolean\",\"value\":\"true\"}," +
+                "\"EmbedFonts\":{\"type\":\"boolean\",\"value\":\"true\"}," +
+                "\"SubsetThreshold\":{\"type\":\"long\",\"value\":\"100\"}," +  // 完整嵌入所有字体
+                
+                // PDF版本和兼容性设置
+                "\"UseTaggedPDF\":{\"type\":\"boolean\",\"value\":\"true\"}," +
+                "\"SelectPdfVersion\":{\"type\":\"long\",\"value\":\"17\"}," +      // PDF 1.7 最佳兼容性
+                
+                // 压缩和质量设置 - 确保最高图像质量
+                "\"CompressMode\":{\"type\":\"long\",\"value\":\"1\"}," +           // 无损压缩
+                "\"JPEGQuality\":{\"type\":\"long\",\"value\":\"95\"}," +           // 95%高质量
+                "\"ReduceImageResolution\":{\"type\":\"boolean\",\"value\":\"false\"}," +
+                "\"MaxImageResolution\":{\"type\":\"long\",\"value\":\"300\"}," +   // 300 DPI
+                
+                // 导出内容控制
+                "\"ExportBookmarks\":{\"type\":\"boolean\",\"value\":\"true\"}," +
+                "\"ExportNotes\":{\"type\":\"boolean\",\"value\":\"false\"}," +
+                "\"ConvertOOoTargetToPDFTarget\":{\"type\":\"boolean\",\"value\":\"true\"}," +
+                "\"ExportLinksRelativeFsys\":{\"type\":\"boolean\",\"value\":\"false\"}," +
+                
+                // 辅助功能和结构
+                "\"PDFUACompliance\":{\"type\":\"boolean\",\"value\":\"false\"}," +
+                "\"ExportFormFields\":{\"type\":\"boolean\",\"value\":\"true\"}," +
+                "\"FormsType\":{\"type\":\"long\",\"value\":\"0\"}," +
+                "\"AllowDuplicateFieldNames\":{\"type\":\"boolean\",\"value\":\"false\"}," +
+                
+                // 页面布局保持设置 - 关键参数确保页面一致性
+                "\"ExportBackgrounds\":{\"type\":\"boolean\",\"value\":\"true\"}," +
+                "\"IsSkipEmptyPages\":{\"type\":\"boolean\",\"value\":\"false\"}," +
+                "\"IsAddStream\":{\"type\":\"boolean\",\"value\":\"false\"}," +
+                
+                // 高级图形和字体渲染选项
+                "\"SignPDF\":{\"type\":\"boolean\",\"value\":\"false\"}," +
+                "\"RestrictPermissions\":{\"type\":\"boolean\",\"value\":\"false\"}" +
+                "}";
+    }
+    
+    /**
+     * 读取进程错误输出
+     */
+    private String readProcessErrorOutput(Process process) {
+        try {
+            return new String(process.getErrorStream().readAllBytes());
+        } catch (Exception e) {
+            return "Unable to read error output";
+        }
+    }
+    
+    /**
+     * 移动生成的PDF到目标位置
      */
     private void moveGeneratedPdfToTargetLocation(File inputFile, File outputFile, Path outputDir) throws Exception {
         String inputFileName = inputFile.getName();
@@ -154,8 +220,6 @@ public class LibreOfficeWordToPdfConverter implements WordToPdfConverter {
     
     /**
      * 清理临时文件
-     * 
-     * @param tempFile 临时文件
      */
     private void cleanupTempFile(File tempFile) {
         if (tempFile != null && tempFile.exists()) {

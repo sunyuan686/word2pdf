@@ -3,181 +3,719 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Word2PDF 转换服务</title>
+    <title>Word2PDF 转换服务 - 质量验证版</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             padding: 20px;
-            background-color: #f5f5f5;
         }
+
         .container {
+            max-width: 1200px;
+            margin: 0 auto;
             background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
             padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            color: #333;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .upload-section {
-            margin-bottom: 30px;
-            padding: 20px;
-            border: 2px dashed #ddd;
-            border-radius: 8px;
             text-align: center;
         }
-        .converter-buttons {
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .tabs {
             display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin: 20px 0;
-            flex-wrap: wrap;
+            border-bottom: 2px solid #f0f0f0;
+            margin-bottom: 30px;
         }
-        button {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 6px;
+
+        .tab {
+            padding: 15px 30px;
             cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
+            background: none;
+            border: none;
+            font-size: 1rem;
+            color: #666;
+            border-bottom: 3px solid transparent;
             transition: all 0.3s ease;
         }
-        .btn-primary {
-            background-color: #007bff;
+
+        .tab.active {
+            color: #4facfe;
+            border-bottom-color: #4facfe;
+            background: rgba(79, 172, 254, 0.1);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border: 2px dashed #ddd;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: #4facfe;
+            background: rgba(79, 172, 254, 0.05);
+        }
+
+        .file-input {
+            margin: 20px 0;
+        }
+
+        .file-input input {
+            margin-bottom: 10px;
+        }
+
+        .converter-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .converter-btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .converter-btn:before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.6s ease;
+        }
+
+        .converter-btn:hover:before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .poi-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
-        .btn-primary:hover {
-            background-color: #0056b3;
-        }
-        .btn-success {
-            background-color: #28a745;
+
+        .docx4j-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             color: white;
         }
-        .btn-success:hover {
-            background-color: #1e7e34;
-        }
-        .btn-warning {
-            background-color: #ffc107;
-            color: #212529;
-        }
-        .btn-warning:hover {
-            background-color: #e0a800;
-        }
-        .btn-info {
-            background-color: #17a2b8;
+
+        .libreoffice-btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             color: white;
         }
-        .btn-info:hover {
-            background-color: #117a8b;
+
+        .quality-btn {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
         }
-        .result {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 6px;
-            font-family: 'Courier New', monospace;
-            white-space: pre-wrap;
-            max-height: 400px;
-            overflow-y: auto;
+
+        .compare-btn {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+            grid-column: 1 / -1;
         }
-        .result.success {
-            background-color: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-        }
-        .result.error {
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-        }
+
         .loading {
             display: none;
             text-align: center;
-            margin: 20px 0;
+            padding: 40px;
         }
+
         .loading.show {
             display: block;
         }
-        input[type="file"] {
-            margin: 10px 0;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            width: 100%;
-            max-width: 300px;
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #4facfe;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
         }
-        .api-info {
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
             margin-top: 30px;
-        }
-        .api-info h3 {
-            margin-top: 0;
-            color: #495057;
-        }
-        .api-info code {
-            background-color: #e9ecef;
-            padding: 2px 6px;
-            border-radius: 3px;
+            padding: 25px;
+            border-radius: 10px;
             font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            max-height: 500px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .quality-result {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .quality-score {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .score-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            color: white;
+        }
+
+        .score-excellent { background: #28a745; }
+        .score-good { background: #17a2b8; }
+        .score-average { background: #ffc107; color: #212529; }
+        .score-poor { background: #dc3545; }
+
+        .quality-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .detail-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .detail-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4facfe;
+        }
+
+        .detail-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .ranking-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .ranking-table th,
+        .ranking-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .ranking-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .ranking-table tr:hover {
+            background: rgba(79, 172, 254, 0.05);
+        }
+
+        .available-converters {
+            background: #e7f3ff;
+            border: 1px solid #b8daff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .available-converters h3 {
+            color: #004085;
+            margin-bottom: 10px;
+        }
+
+        .converter-list {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .converter-tag {
+            background: #4facfe;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Word2PDF 转换服务</h1>
-        
-        <div class="upload-section">
-            <h3>选择Word文档</h3>
-            <input type="file" id="fileInput" accept=".docx,.doc" />
-            <p>支持 .docx 和 .doc 格式</p>
+        <div class="header">
+            <h1>🔄 Word2PDF 转换服务</h1>
+            <p>高质量Word文档转PDF工具 - 支持质量验证与对比分析</p>
         </div>
-        
-        <div class="converter-buttons">
-            <button class="btn-primary" onclick="convert('POI')">POI 转换</button>
-            <button class="btn-success" onclick="convert('Docx4j')">Docx4j 转换</button>
-            <button class="btn-warning" onclick="convert('LibreOffice')">LibreOffice 转换</button>
-            <button class="btn-info" onclick="compareAll()">性能对比</button>
-        </div>
-        
-        <div class="loading" id="loading">
-            <p>转换中，请稍候...</p>
-        </div>
-        
-        <div id="result" class="result" style="display: none;"></div>
-        
-        <div class="api-info">
-            <h3>API 接口信息</h3>
-            <p><strong>基础URL:</strong> <code>http://localhost:8080/api</code></p>
-            <p><strong>获取可用转换器:</strong> <code>GET /convert/converters</code></p>
-            <p><strong>转换文件:</strong> <code>POST /convert/{converter}</code></p>
-            <p><strong>性能对比:</strong> <code>POST /convert/compare</code></p>
-            <p><strong>下载文件:</strong> <code>GET /download/{filename}</code></p>
+
+        <div class="content">
+            <!-- 可用转换器显示 -->
+            <div class="available-converters">
+                <h3>🔧 可用转换器</h3>
+                <div class="converter-list" id="converterList">
+                    <span class="converter-tag">加载中...</span>
+                </div>
+            </div>
+
+            <!-- 标签导航 -->
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('convert')">转换文档</button>
+                <button class="tab" onclick="switchTab('validate')">质量验证</button>
+                <button class="tab" onclick="switchTab('compare')">质量对比</button>
+            </div>
+
+            <!-- 转换文档标签 -->
+            <div id="convert" class="tab-content active">
+                <div class="upload-section">
+                    <h3>📄 选择Word文档</h3>
+                    <p>支持 .docx 和 .doc 格式</p>
+                    <div class="file-input">
+                        <input type="file" id="fileInput" accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                    </div>
+                </div>
+
+                <div class="converter-buttons">
+                    <button class="converter-btn poi-btn" onclick="convertAndValidate('POI')">
+                        <strong>POI 转换器</strong><br>
+                        <small>优化中文支持</small>
+                    </button>
+                    <button class="converter-btn docx4j-btn" onclick="convertAndValidate('Docx4j')">
+                        <strong>Docx4j 转换器</strong><br>
+                        <small>企业级方案</small>
+                    </button>
+                    <button class="converter-btn libreoffice-btn" onclick="convertAndValidate('LibreOffice')">
+                        <strong>LibreOffice 转换器</strong><br>
+                        <small>专业级质量</small>
+                    </button>
+                    <button class="converter-btn compare-btn" onclick="batchQualityComparison()">
+                        <strong>🏆 质量对比分析</strong><br>
+                        <small>使用所有转换器并分析质量差异</small>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 质量验证标签 -->
+            <div id="validate" class="tab-content">
+                <div class="upload-section">
+                    <h3>🔍 上传文件进行质量验证</h3>
+                    <div class="file-input">
+                        <label>原始Word文档：</label>
+                        <input type="file" id="wordFileInput" accept=".doc,.docx" style="margin-bottom: 15px;">
+                        <br>
+                        <label>生成的PDF文件：</label>
+                        <input type="file" id="pdfFileInput" accept=".pdf">
+                        <br>
+                        <label>转换器名称：</label>
+                        <select id="converterSelect" style="margin-top: 10px; padding: 8px;">
+                            <option value="POI">POI</option>
+                            <option value="Docx4j">Docx4j</option>
+                            <option value="LibreOffice">LibreOffice</option>
+                        </select>
+                    </div>
+                    <button class="converter-btn quality-btn" onclick="validateQuality()">
+                        <strong>🔍 开始质量验证</strong>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 质量对比标签 -->
+            <div id="compare" class="tab-content">
+                <div class="upload-section">
+                    <h3>📊 批量质量对比分析</h3>
+                    <p>上传Word文档，系统将使用所有可用转换器进行转换并分析质量差异</p>
+                    <div class="file-input">
+                        <input type="file" id="compareFileInput" accept=".doc,.docx">
+                    </div>
+                    <button class="converter-btn compare-btn" onclick="batchQualityComparison()">
+                        <strong>🚀 开始批量对比</strong>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 加载提示 -->
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>正在处理中，请稍候...</p>
+            </div>
+
+            <!-- 结果显示 -->
+            <div id="result" class="result"></div>
         </div>
     </div>
 
     <script>
+        // 页面加载时获取可用转换器
+        window.addEventListener('load', function() {
+            loadAvailableConverters();
+        });
+
+        // 加载可用转换器
+        function loadAvailableConverters() {
+            fetch('/api/convert/converters')
+                .then(response => response.json())
+                .then(converters => {
+                    const converterList = document.getElementById('converterList');
+                    converterList.innerHTML = '';
+                    converters.forEach(converter => {
+                        const tag = document.createElement('span');
+                        tag.className = 'converter-tag';
+                        tag.textContent = converter;
+                        converterList.appendChild(tag);
+                    });
+                })
+                .catch(error => {
+                    console.error('Failed to load converters:', error);
+                    document.getElementById('converterList').innerHTML = 
+                        '<span class="converter-tag" style="background: #dc3545;">加载失败</span>';
+                });
+        }
+
+        // 切换标签
+        function switchTab(tabName) {
+            // 隐藏所有标签内容
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 移除所有标签的活动状态
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 显示选中的标签内容
+            document.getElementById(tabName).classList.add('active');
+            
+            // 激活选中的标签
+            event.target.classList.add('active');
+        }
+
+        // 显示加载状态
         function showLoading() {
             document.getElementById('loading').classList.add('show');
             document.getElementById('result').style.display = 'none';
         }
-        
+
+        // 隐藏加载状态
         function hideLoading() {
             document.getElementById('loading').classList.remove('show');
         }
-        
+
+        // 显示结果
         function showResult(data, isSuccess = true) {
             const resultDiv = document.getElementById('result');
-            resultDiv.textContent = JSON.stringify(data, null, 2);
-            resultDiv.className = `result ${isSuccess ? 'success' : 'error'}`;
-            resultDiv.style.display = 'block';
+            
+            if (data.validation) {
+                // 显示质量验证结果
+                showQualityResult(data);
+            } else if (data.ranking) {
+                // 显示批量对比结果
+                showComparisonResult(data);
+            } else {
+                // 显示普通转换结果
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+                resultDiv.className = `result ${isSuccess ? 'success' : 'error'}`;
+                resultDiv.style.display = 'block';
+            }
+            
             hideLoading();
         }
-        
+
+        // 显示质量验证结果
+        function showQualityResult(data) {
+            const resultDiv = document.getElementById('result');
+            const validation = data.validation;
+            
+            let scoreClass = 'score-poor';
+            if (validation.overallScore >= 0.9) scoreClass = 'score-excellent';
+            else if (validation.overallScore >= 0.8) scoreClass = 'score-good';
+            else if (validation.overallScore >= 0.7) scoreClass = 'score-average';
+            
+            const html = `
+                <div class="quality-result">
+                    <h3>🎯 质量验证结果 - ${validation.converterName}</h3>
+                    
+                    <div class="quality-score">
+                        <div class="score-circle ${scoreClass}">
+                            ${Math.round(validation.overallScore * 100)}
+                        </div>
+                        <div>
+                            <h4>总体质量分数</h4>
+                            <p>质量等级：${validation.qualityLevel}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="quality-details">
+                        <div class="detail-item">
+                            <div class="detail-value">${validation.actualPageCount}</div>
+                            <div class="detail-label">PDF页数</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-value">${Math.round(validation.textSimilarity * 100)}%</div>
+                            <div class="detail-label">文本相似度</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-value">${Math.round(validation.chineseCharacterAccuracy * 100)}%</div>
+                            <div class="detail-label">中文准确度</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-value">${validation.structureIntact ? '✅' : '❌'}</div>
+                            <div class="detail-label">结构完整</div>
+                        </div>
+                    </div>
+                    
+                    ${validation.issues && validation.issues.length > 0 ? `
+                        <div style="margin-top: 20px;">
+                            <h4>⚠️ 发现的问题：</h4>
+                            <ul style="margin-left: 20px; margin-top: 10px;">
+                                ${validation.issues.map(issue => `<li>${issue}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                    
+                    ${data.conversion && data.conversion.downloadUrl ? `
+                        <div style="margin-top: 20px; text-align: center;">
+                            <a href="${data.conversion.downloadUrl}" 
+                               style="background: #4facfe; color: white; padding: 12px 24px; 
+                                      text-decoration: none; border-radius: 8px; display: inline-block;">
+                                📥 下载PDF文件
+                            </a>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            resultDiv.innerHTML = html;
+            resultDiv.style.display = 'block';
+        }
+
+        // 显示批量对比结果
+        function showComparisonResult(data) {
+            const resultDiv = document.getElementById('result');
+            const ranking = data.ranking || [];
+            const summary = data.summary || {};
+            
+            const html = `
+                <div class="quality-result">
+                    <h3>🏆 质量对比分析结果</h3>
+                    
+                    ${summary.recommendedConverter ? `
+                        <div class="quality-score">
+                            <div class="score-circle score-excellent">
+                                👑
+                            </div>
+                            <div>
+                                <h4>推荐转换器：${summary.recommendedConverter}</h4>
+                                <p>最佳分数：${Math.round(summary.bestScore * 100)}% (${summary.bestLevel})</p>
+                                <p>平均分数：${Math.round(summary.averageScore * 100)}%</p>
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <table class="ranking-table">
+                        <thead>
+                            <tr>
+                                <th>排名</th>
+                                <th>转换器</th>
+                                <th>质量分数</th>
+                                <th>质量等级</th>
+                                <th>页数准确</th>
+                                <th>文本相似度</th>
+                                <th>中文准确度</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${ranking.map((item, index) => `
+                                <tr>
+                                    <td>${index + 1}</td>
+                                    <td><strong>${item.converter}</strong></td>
+                                    <td>${Math.round(item.score * 100)}%</td>
+                                    <td>${item.level}</td>
+                                    <td>${item.pageCountAccurate ? '✅' : '❌'}</td>
+                                    <td>${Math.round(item.textSimilarity * 100)}%</td>
+                                    <td>${Math.round(item.chineseAccuracy * 100)}%</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    
+                    <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                        <h4>📋 详细结果数据</h4>
+                        <pre style="font-size: 0.9rem; max-height: 300px; overflow-y: auto;">${JSON.stringify(data.results, null, 2)}</pre>
+                    </div>
+                </div>
+            `;
+            
+            resultDiv.innerHTML = html;
+            resultDiv.style.display = 'block';
+        }
+
+        // 转换并验证
+        function convertAndValidate(converter) {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('请先选择一个Word文档');
+                return;
+            }
+            
+            showLoading();
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            fetch(`/api/convert/convert-and-validate/${converter}`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                showResult(data, !data.error);
+            })
+            .catch(error => {
+                showResult({error: error.message}, false);
+            });
+        }
+
+        // 质量验证
+        function validateQuality() {
+            const wordFile = document.getElementById('wordFileInput').files[0];
+            const pdfFile = document.getElementById('pdfFileInput').files[0];
+            const converter = document.getElementById('converterSelect').value;
+            
+            if (!wordFile || !pdfFile) {
+                alert('请选择Word文档和PDF文件');
+                return;
+            }
+            
+            showLoading();
+            
+            const formData = new FormData();
+            formData.append('wordFile', wordFile);
+            formData.append('pdfFile', pdfFile);
+            formData.append('converterName', converter);
+            
+            fetch('/api/convert/validate-quality', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                showResult({validation: data}, !data.error);
+            })
+            .catch(error => {
+                showResult({error: error.message}, false);
+            });
+        }
+
+        // 批量质量对比
+        function batchQualityComparison() {
+            const fileInput = document.getElementById('fileInput') || document.getElementById('compareFileInput');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('请先选择一个Word文档');
+                return;
+            }
+            
+            showLoading();
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            fetch('/api/convert/quality-comparison', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                showResult(data, !data.error);
+            })
+            .catch(error => {
+                showResult({error: error.message}, false);
+            });
+        }
+
+        // 简单转换（兼容原有功能）
         function convert(converter) {
             const fileInput = document.getElementById('fileInput');
             const file = fileInput.files[0];
@@ -204,45 +742,6 @@
                 showResult({error: error.message}, false);
             });
         }
-        
-        function compareAll() {
-            const fileInput = document.getElementById('fileInput');
-            const file = fileInput.files[0];
-            
-            if (!file) {
-                alert('请先选择一个Word文档');
-                return;
-            }
-            
-            showLoading();
-            
-            const formData = new FormData();
-            formData.append('file', file);
-            
-            fetch('/api/convert/compare', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                showResult(data, true);
-            })
-            .catch(error => {
-                showResult({error: error.message}, false);
-            });
-        }
-        
-        // 页面加载时获取可用转换器
-        window.onload = function() {
-            fetch('/api/convert/converters')
-            .then(response => response.json())
-            .then(data => {
-                console.log('可用转换器:', data);
-            })
-            .catch(error => {
-                console.error('获取转换器列表失败:', error);
-            });
-        };
     </script>
 </body>
 </html> 
