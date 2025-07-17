@@ -154,6 +154,11 @@
             color: white;
         }
 
+        .jodconverter-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+            color: white;
+        }
+
         .quality-btn {
             background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
             color: white;
@@ -324,7 +329,7 @@
     <div class="container">
         <div class="header">
             <h1>🔄 Word2PDF 转换服务</h1>
-            <p>高质量Word文档转PDF工具 - 支持质量验证与对比分析</p>
+            <p>高质量Word文档转PDF工具 - 支持JODConverter企业级转换、对象存储、下载链接生成、质量验证与对比分析</p>
         </div>
 
         <div class="content">
@@ -339,6 +344,7 @@
             <!-- 标签导航 -->
             <div class="tabs">
                 <button class="tab active" onclick="switchTab('convert')">转换文档</button>
+                <button class="tab" onclick="switchTab('jodconverter')">JODConverter</button>
                 <button class="tab" onclick="switchTab('validate')">质量验证</button>
                 <button class="tab" onclick="switchTab('compare')">质量对比</button>
             </div>
@@ -366,10 +372,132 @@
                         <strong>LibreOffice 转换器</strong><br>
                         <small>专业级质量</small>
                     </button>
+                    <button class="converter-btn jodconverter-btn" onclick="convertWithJODConverter()">
+                        <strong>JODConverter 转换器</strong><br>
+                        <small>🚀 高性能企业级</small>
+                    </button>
                     <button class="converter-btn compare-btn" onclick="batchQualityComparison()">
                         <strong>🏆 质量对比分析</strong><br>
                         <small>使用所有转换器并分析质量差异</small>
                     </button>
+                </div>
+            </div>
+
+            <!-- JODConverter 专用标签 -->
+            <div id="jodconverter" class="tab-content">
+                <div class="upload-section">
+                    <h3>🚀 JODConverter 高性能转换</h3>
+                    <p>基于 LibreOffice UNO API 的企业级转换解决方案</p>
+                    <div class="file-input">
+                        <input type="file" id="jodFileInput" accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                    </div>
+                </div>
+
+                <!-- JODConverter 状态检查 -->
+                <div class="available-converters" style="margin-bottom: 20px;">
+                    <h3>📊 JODConverter 状态</h3>
+                    <div id="jodStatus" style="padding: 10px;">
+                        <button class="converter-btn" onclick="checkJODConverterStatus()" style="background: #17a2b8; margin-right: 10px;">
+                            🔍 检查状态
+                        </button>
+                        <button class="converter-btn" onclick="checkJODConverterHealth()" style="background: #28a745;">
+                            ❤️ 健康检查
+                        </button>
+                    </div>
+                    <div id="jodStatusResult" style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px; display: none;">
+                        <!-- 状态结果将在这里显示 -->
+                    </div>
+                </div>
+
+                <!-- JODConverter 转换按钮 -->
+                <div class="converter-buttons">
+                    <button class="converter-btn jodconverter-btn" onclick="convertWithJODConverter()">
+                        <strong>🚀 JODConverter 转换</strong><br>
+                        <small>高性能 + 进程池管理</small>
+                    </button>
+                    <button class="converter-btn quality-btn" onclick="convertAndValidateJOD()">
+                        <strong>🔍 转换 + 质量验证</strong><br>
+                        <small>一站式转换和质量分析</small>
+                    </button>
+                    <button class="converter-btn" onclick="convertToStorage()" style="background: linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%); color: white;">
+                        <strong>☁️ 转换到对象存储</strong><br>
+                        <small>转换并上传到存储，返回下载链接</small>
+                    </button>
+                </div>
+
+                <!-- JODConverter 特性说明 -->
+                <div style="margin-top: 30px; padding: 20px; background: #e7f3ff; border-radius: 10px;">
+                    <h4>🌟 JODConverter 特性</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
+                        <div style="background: white; padding: 15px; border-radius: 8px;">
+                            <strong>⚡ 高性能</strong><br>
+                            <small>基于 LibreOffice UNO API</small>
+                        </div>
+                        <div style="background: white; padding: 15px; border-radius: 8px;">
+                            <strong>🔄 进程池</strong><br>
+                            <small>自动管理多个 LibreOffice 进程</small>
+                        </div>
+                        <div style="background: white; padding: 15px; border-radius: 8px;">
+                            <strong>🏢 企业级</strong><br>
+                            <small>适合高并发生产环境</small>
+                        </div>
+                        <div style="background: white; padding: 15px; border-radius: 8px;">
+                            <strong>🌏 中文支持</strong><br>
+                            <small>原生支持中文文档</small>
+                        </div>
+                        <div style="background: white; padding: 15px; border-radius: 8px;">
+                            <strong>☁️ 对象存储</strong><br>
+                            <small>支持转换后上传到存储</small>
+                        </div>
+                        <div style="background: white; padding: 15px; border-radius: 8px;">
+                            <strong>🔗 下载链接</strong><br>
+                            <small>自动生成永久和预签名链接</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 快速测试区域 -->
+                <div style="margin-top: 30px; padding: 20px; background: #fff3cd; border-radius: 10px;">
+                    <h4>🧪 快速测试 API 接口</h4>
+                    <p style="color: #856404; margin-bottom: 15px;">测试 JODConverter 的各个接口功能</p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                        <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #ffeaa7;">
+                            <strong>📡 API 端点测试</strong><br>
+                            <button onclick="testJODConverterEndpoints()" style="margin-top: 10px; padding: 8px 16px; background: #6c5ce7; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                                测试所有端点
+                            </button>
+                        </div>
+                        <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #ffeaa7;">
+                            <strong>⏱️ 性能测试</strong><br>
+                            <button onclick="performanceTest()" style="margin-top: 10px; padding: 8px 16px; background: #a29bfe; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                                性能基准测试
+                            </button>
+                        </div>
+                        <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #ffeaa7;">
+                            <strong>📊 监控信息</strong><br>
+                            <button onclick="showJODConverterInfo()" style="margin-top: 10px; padding: 8px 16px; background: #fd79a8; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                                显示详细信息
+                            </button>
+                        </div>
+                        <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #ffeaa7;">
+                            <strong>☁️ 对象存储测试</strong><br>
+                            <button onclick="testStorageConversion()" style="margin-top: 10px; padding: 8px 16px; background: #fd79a8; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                                测试存储转换
+                            </button>
+                        </div>
+                        <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #ffeaa7;">
+                            <strong>🔗 下载链接测试</strong><br>
+                            <button onclick="testDownloadLinks()" style="margin-top: 10px; padding: 8px 16px; background: #00b894; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                                验证下载链接
+                            </button>
+                        </div>
+                        <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #ffeaa7;">
+                            <strong>📁 存储状态查看</strong><br>
+                            <button onclick="showStorageInfo()" style="margin-top: 10px; padding: 8px 16px; background: #e17055; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                                查看存储信息
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -389,6 +517,7 @@
                             <option value="POI">POI</option>
                             <option value="Docx4j">Docx4j</option>
                             <option value="LibreOffice">LibreOffice</option>
+                            <option value="JODConverter">JODConverter</option>
                         </select>
                     </div>
                     <button class="converter-btn quality-btn" onclick="validateQuality()">
@@ -489,6 +618,9 @@
             } else if (data.ranking) {
                 // 显示批量对比结果
                 showComparisonResult(data);
+            } else if (data.downloadUrl || data.objectKey) {
+                // 显示对象存储结果
+                showStorageResult(data);
             } else {
                 // 显示普通转换结果
                 resultDiv.textContent = JSON.stringify(data, null, 2);
@@ -742,6 +874,727 @@
                 showResult({error: error.message}, false);
             });
         }
+
+        // JODConverter 转换
+        function convertWithJODConverter() {
+            const fileInput = document.getElementById('fileInput') || document.getElementById('jodFileInput');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('请先选择一个Word文档');
+                return;
+            }
+            
+            showLoading();
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            fetch('/api/jodconverter/convert', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    // JODConverter 返回的是PDF文件流
+                    return response.blob().then(blob => {
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `jodconverter_${new Date().getTime()}.pdf`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(url);
+                        
+                        // 显示成功信息
+                        const conversionTime = response.headers.get('X-Conversion-Time');
+                        const fileSize = response.headers.get('X-File-Size');
+                        
+                        return {
+                            success: true,
+                            converter: 'JODConverter',
+                            message: 'PDF文件已自动下载',
+                            conversionTime: conversionTime ? `${conversionTime}ms` : '未知',
+                            fileSize: fileSize ? `${Math.round(fileSize/1024)}KB` : '未知'
+                        };
+                    });
+                } else {
+                    return response.json().then(error => {
+                        throw new Error(error.error || 'JODConverter 转换失败');
+                    });
+                }
+            })
+            .then(data => {
+                showResult(data, data.success);
+            })
+            .catch(error => {
+                showResult({error: error.message}, false);
+            });
+        }
+
+        // JODConverter 转换并验证质量
+        function convertAndValidateJOD() {
+            const fileInput = document.getElementById('jodFileInput');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('请先选择一个Word文档');
+                return;
+            }
+            
+            showLoading();
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            fetch('/api/convert/convert-and-validate/JODConverter', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                showResult(data, !data.error);
+            })
+            .catch(error => {
+                showResult({error: error.message}, false);
+            });
+        }
+
+        // 检查 JODConverter 状态
+        function checkJODConverterStatus() {
+            fetch('/api/jodconverter/status')
+                .then(response => response.json())
+                .then(data => {
+                    showJODStatus(data, 'status');
+                })
+                .catch(error => {
+                    showJODStatus({error: error.message, available: false}, 'status');
+                });
+        }
+
+        // 检查 JODConverter 健康状态
+        function checkJODConverterHealth() {
+            fetch('/api/jodconverter/health')
+                .then(response => response.json())
+                .then(data => {
+                    showJODStatus(data, 'health');
+                })
+                .catch(error => {
+                    showJODStatus({error: error.message, status: 'DOWN'}, 'health');
+                });
+        }
+
+        // 显示 JODConverter 状态结果
+        function showJODStatus(data, type) {
+            const resultDiv = document.getElementById('jodStatusResult');
+            
+            let html = '';
+            if (type === 'status') {
+                const statusIcon = data.available ? '✅' : '❌';
+                const statusText = data.available ? '可用' : '不可用';
+                const statusColor = data.available ? '#28a745' : '#dc3545';
+                
+                html = `
+                    <h4>📊 JODConverter 状态检查</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 10px;">
+                        <div style="background: white; padding: 10px; border-radius: 5px; text-align: center;">
+                            <div style="font-size: 1.5rem;">${statusIcon}</div>
+                            <div style="color: ${statusColor}; font-weight: bold;">${statusText}</div>
+                        </div>
+                        <div style="background: white; padding: 10px; border-radius: 5px; text-align: center;">
+                            <div style="font-weight: bold;">${data.converterName || 'JODConverter'}</div>
+                            <div style="font-size: 0.9rem; color: #666;">转换器名称</div>
+                        </div>
+                        <div style="background: white; padding: 10px; border-radius: 5px; text-align: center;">
+                            <div style="font-weight: bold;">${data.timestamp || new Date().toLocaleString()}</div>
+                            <div style="font-size: 0.9rem; color: #666;">检查时间</div>
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'health') {
+                const statusIcon = data.status === 'UP' ? '💚' : '💔';
+                const statusColor = data.status === 'UP' ? '#28a745' : '#dc3545';
+                
+                html = `
+                    <h4>❤️ JODConverter 健康检查</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 10px;">
+                        <div style="background: white; padding: 10px; border-radius: 5px; text-align: center;">
+                            <div style="font-size: 1.5rem;">${statusIcon}</div>
+                            <div style="color: ${statusColor}; font-weight: bold;">${data.status}</div>
+                        </div>
+                        <div style="background: white; padding: 10px; border-radius: 5px;">
+                            <div style="font-weight: bold;">消息</div>
+                            <div style="font-size: 0.9rem; color: #666;">${data.message || data.error || '无'}</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (data.error) {
+                html += `<div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-top: 10px;">
+                    <strong>错误:</strong> ${data.error}
+                </div>`;
+            }
+            
+                         resultDiv.innerHTML = html;
+             resultDiv.style.display = 'block';
+         }
+
+         // 测试 JODConverter 所有端点
+         function testJODConverterEndpoints() {
+             showLoading();
+             
+             const tests = [
+                 { name: '健康检查', url: '/api/jodconverter/health', method: 'GET' },
+                 { name: '状态检查', url: '/api/jodconverter/status', method: 'GET' },
+                 { name: '可用转换器', url: '/api/convert/converters', method: 'GET' }
+             ];
+             
+             Promise.all(tests.map(test => 
+                 fetch(test.url)
+                     .then(response => response.json())
+                     .then(data => ({ test: test.name, success: true, data }))
+                     .catch(error => ({ test: test.name, success: false, error: error.message }))
+             ))
+             .then(results => {
+                 const html = `
+                     <div class="quality-result">
+                         <h3>🧪 JODConverter API 端点测试结果</h3>
+                         <table class="ranking-table">
+                             <thead>
+                                 <tr>
+                                     <th>测试项目</th>
+                                     <th>状态</th>
+                                     <th>结果</th>
+                                 </tr>
+                             </thead>
+                             <tbody>
+                                 ${results.map(result => `
+                                     <tr>
+                                         <td><strong>${result.test}</strong></td>
+                                         <td>${result.success ? '✅ 成功' : '❌ 失败'}</td>
+                                         <td style="max-width: 300px; overflow: hidden;">
+                                             ${result.success ? 
+                                                 JSON.stringify(result.data, null, 2) : 
+                                                 result.error
+                                             }
+                                         </td>
+                                     </tr>
+                                 `).join('')}
+                             </tbody>
+                         </table>
+                     </div>
+                 `;
+                 
+                 document.getElementById('result').innerHTML = html;
+                 document.getElementById('result').style.display = 'block';
+                 hideLoading();
+             });
+         }
+
+         // 性能测试
+         function performanceTest() {
+             const fileInput = document.getElementById('jodFileInput');
+             const file = fileInput.files[0];
+             
+             if (!file) {
+                 alert('请先选择一个Word文档进行性能测试');
+                 return;
+             }
+             
+             showLoading();
+             
+             const startTime = Date.now();
+             
+             const formData = new FormData();
+             formData.append('file', file);
+             
+             fetch('/api/jodconverter/convert', {
+                 method: 'POST',
+                 body: formData
+             })
+             .then(response => {
+                 const endTime = Date.now();
+                 const totalTime = endTime - startTime;
+                 const conversionTime = response.headers.get('X-Conversion-Time');
+                 const fileSize = response.headers.get('X-File-Size');
+                 const converter = response.headers.get('X-Converter');
+                 
+                 if (response.ok) {
+                     return response.blob().then(blob => ({
+                         success: true,
+                         totalTime,
+                         conversionTime,
+                         fileSize,
+                         converter,
+                         pdfSize: blob.size,
+                         originalSize: file.size
+                     }));
+                 } else {
+                     throw new Error('转换失败');
+                 }
+             })
+             .then(data => {
+                 const html = `
+                     <div class="quality-result">
+                         <h3>⏱️ JODConverter 性能测试结果</h3>
+                         <div class="quality-details">
+                             <div class="detail-item">
+                                 <div class="detail-value">${data.totalTime}ms</div>
+                                 <div class="detail-label">总耗时</div>
+                             </div>
+                             <div class="detail-item">
+                                 <div class="detail-value">${data.conversionTime || '未知'}ms</div>
+                                 <div class="detail-label">转换耗时</div>
+                             </div>
+                             <div class="detail-item">
+                                 <div class="detail-value">${Math.round(data.originalSize/1024)}KB</div>
+                                 <div class="detail-label">原文件大小</div>
+                             </div>
+                             <div class="detail-item">
+                                 <div class="detail-value">${Math.round(data.pdfSize/1024)}KB</div>
+                                 <div class="detail-label">PDF大小</div>
+                             </div>
+                             <div class="detail-item">
+                                 <div class="detail-value">${((data.originalSize/1024) / (data.totalTime/1000)).toFixed(2)}</div>
+                                 <div class="detail-label">处理速度 (KB/s)</div>
+                             </div>
+                             <div class="detail-item">
+                                 <div class="detail-value">${data.converter || 'JODConverter'}</div>
+                                 <div class="detail-label">转换器</div>
+                             </div>
+                         </div>
+                         
+                         <div style="margin-top: 20px; padding: 15px; background: #d4edda; border-radius: 8px;">
+                             <h4>✅ 性能评估</h4>
+                             <p><strong>转换效率:</strong> ${data.totalTime < 5000 ? '优秀' : data.totalTime < 10000 ? '良好' : '一般'}</p>
+                             <p><strong>文件压缩比:</strong> ${(data.pdfSize / data.originalSize * 100).toFixed(1)}%</p>
+                             <p><strong>平均处理速度:</strong> ${((data.originalSize/1024) / (data.totalTime/1000)).toFixed(2)} KB/s</p>
+                         </div>
+                     </div>
+                 `;
+                 
+                 document.getElementById('result').innerHTML = html;
+                 document.getElementById('result').style.display = 'block';
+                 hideLoading();
+             })
+             .catch(error => {
+                 showResult({error: error.message}, false);
+             });
+         }
+
+         // 显示 JODConverter 详细信息
+         function showJODConverterInfo() {
+             showLoading();
+             
+             Promise.all([
+                 fetch('/api/jodconverter/status').then(r => r.json()),
+                 fetch('/api/jodconverter/health').then(r => r.json()),
+                 fetch('/api/convert/converters').then(r => r.json())
+             ])
+             .then(([status, health, converters]) => {
+                 const html = `
+                     <div class="quality-result">
+                         <h3>📊 JODConverter 详细信息</h3>
+                         
+                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                             <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                                 <h4>🔧 服务状态</h4>
+                                 <p><strong>可用性:</strong> ${status.available ? '✅ 可用' : '❌ 不可用'}</p>
+                                 <p><strong>转换器名称:</strong> ${status.converterName || 'JODConverter'}</p>
+                                 <p><strong>检查时间:</strong> ${status.timestamp || new Date().toLocaleString()}</p>
+                             </div>
+                             
+                             <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                                 <h4>❤️ 健康状态</h4>
+                                 <p><strong>状态:</strong> ${health.status === 'UP' ? '🟢 UP' : '🔴 DOWN'}</p>
+                                 <p><strong>消息:</strong> ${health.message || health.error || '正常'}</p>
+                                 <p><strong>服务类型:</strong> 企业级文档转换</p>
+                             </div>
+                             
+                             <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                                 <h4>📋 转换器列表</h4>
+                                 <p><strong>可用转换器:</strong></p>
+                                 <ul style="margin-left: 20px;">
+                                     ${converters.map(c => `<li>${c}${c === 'JODConverter' ? ' 🌟' : ''}</li>`).join('')}
+                                 </ul>
+                             </div>
+                         </div>
+                         
+                         <div style="margin-top: 20px; padding: 15px; background: #e7f3ff; border-radius: 8px;">
+                             <h4>📈 JODConverter 技术规格</h4>
+                             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 10px;">
+                                 <div><strong>架构:</strong> LibreOffice UNO API</div>
+                                 <div><strong>进程管理:</strong> 连接池模式</div>
+                                 <div><strong>并发支持:</strong> 多进程池</div>
+                                 <div><strong>文档格式:</strong> DOC, DOCX → PDF</div>
+                                 <div><strong>字符编码:</strong> UTF-8 完整支持</div>
+                                 <div><strong>部署模式:</strong> Spring Boot 集成</div>
+                             </div>
+                         </div>
+                     </div>
+                 `;
+                 
+                 document.getElementById('result').innerHTML = html;
+                 document.getElementById('result').style.display = 'block';
+                 hideLoading();
+             })
+             .catch(error => {
+                 showResult({error: '获取信息失败: ' + error.message}, false);
+             });
+         }
+
+         // 对象存储转换
+         function convertToStorage() {
+             const fileInput = document.getElementById('fileInput') || document.getElementById('jodFileInput');
+             const file = fileInput.files[0];
+             
+             if (!file) {
+                 alert('请先选择一个Word文档');
+                 return;
+             }
+             
+             showLoading();
+             
+             const formData = new FormData();
+             formData.append('file', file);
+             
+             fetch('/api/jodconverter/convert-to-storage', {
+                 method: 'POST',
+                 body: formData
+             })
+             .then(response => response.json())
+             .then(data => {
+                 showResult(data, data.success);
+             })
+             .catch(error => {
+                 showResult({error: error.message}, false);
+             });
+         }
+
+         // 显示对象存储结果
+         function showStorageResult(data) {
+             const resultDiv = document.getElementById('result');
+             
+             if (!data.success) {
+                 resultDiv.innerHTML = `
+                     <div style="background: #f8d7da; color: #721c24; padding: 20px; border-radius: 10px;">
+                         <h4>❌ 转换失败</h4>
+                         <p><strong>错误信息:</strong> ${data.error || data.message}</p>
+                         <pre style="margin-top: 10px; background: white; padding: 10px; border-radius: 5px;">${JSON.stringify(data, null, 2)}</pre>
+                     </div>
+                 `;
+                 resultDiv.style.display = 'block';
+                 return;
+             }
+             
+             const html = `
+                 <div class="quality-result">
+                     <h3>☁️ 对象存储转换成功</h3>
+                     
+                     <div class="quality-score">
+                         <div class="score-circle score-excellent">
+                             ✅
+                         </div>
+                         <div>
+                             <h4>转换完成并已上传到对象存储</h4>
+                             <p>文件: ${data.originalFileName}</p>
+                             <p>存储桶: ${data.bucketName}</p>
+                         </div>
+                     </div>
+                     
+                     <div class="quality-details">
+                         <div class="detail-item">
+                             <div class="detail-value">${data.fileSizeFormatted || Math.round(data.fileSize/1024) + 'KB'}</div>
+                             <div class="detail-label">文件大小</div>
+                         </div>
+                         <div class="detail-item">
+                             <div class="detail-value">${data.conversionTimeFormatted || data.conversionTime + 'ms'}</div>
+                             <div class="detail-label">转换时间</div>
+                         </div>
+                         <div class="detail-item">
+                             <div class="detail-value">${data.totalTimeFormatted || data.totalTime + 'ms'}</div>
+                             <div class="detail-label">总耗时</div>
+                         </div>
+                         <div class="detail-item">
+                             <div class="detail-value">${data.converter}</div>
+                             <div class="detail-label">转换器</div>
+                         </div>
+                     </div>
+                     
+                     <div style="margin-top: 20px; padding: 20px; background: #d4edda; border-radius: 10px;">
+                         <h4>🔗 下载链接</h4>
+                         <div style="margin: 15px 0;">
+                             <p><strong>永久下载链接:</strong></p>
+                             <div style="background: white; padding: 10px; border-radius: 5px; margin: 5px 0; word-break: break-all; font-family: monospace; font-size: 0.9rem;">
+                                 ${data.downloadUrl}
+                             </div>
+                             <button onclick="window.open('${data.downloadUrl}', '_blank')" 
+                                     style="background: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; margin-right: 10px;">
+                                 📥 直接下载
+                             </button>
+                             <button onclick="testDownloadUrl('${data.downloadUrl}')" 
+                                     style="background: #17a2b8; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; margin-right: 10px;">
+                                 🔍 测试链接
+                             </button>
+                             <button onclick="copyToClipboard('${data.downloadUrl}')" 
+                                     style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">
+                                 📋 复制链接
+                             </button>
+                         </div>
+                         
+                         ${data.preSignedUrl ? `
+                             <div style="margin: 15px 0;">
+                                 <p><strong>预签名链接 (${data.preSignedUrlExpiration}):</strong></p>
+                                 <div style="background: white; padding: 10px; border-radius: 5px; margin: 5px 0; word-break: break-all; font-family: monospace; font-size: 0.9rem;">
+                                     ${data.preSignedUrl}
+                                 </div>
+                                 <button onclick="window.open('${data.preSignedUrl}', '_blank')" 
+                                         style="background: #fd7e14; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; margin-right: 10px;">
+                                     📥 通过预签名下载
+                                 </button>
+                                 <button onclick="copyToClipboard('${data.preSignedUrl}')" 
+                                         style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">
+                                     📋 复制预签名链接
+                                 </button>
+                             </div>
+                         ` : ''}
+                     </div>
+                     
+                     <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                         <h4>📁 存储信息</h4>
+                         <p><strong>对象键:</strong> <code>${data.objectKey}</code></p>
+                         <p><strong>存储桶:</strong> <code>${data.bucketName}</code></p>
+                         <p><strong>转换时间:</strong> ${data.timestamp}</p>
+                     </div>
+                     
+                     <div style="margin-top: 15px; padding: 10px; background: #e2e3e5; border-radius: 5px;">
+                         <details>
+                             <summary style="cursor: pointer; font-weight: bold;">🔍 查看完整响应数据</summary>
+                             <pre style="margin-top: 10px; background: white; padding: 10px; border-radius: 5px; overflow-x: auto; font-size: 0.8rem;">${JSON.stringify(data, null, 2)}</pre>
+                         </details>
+                     </div>
+                 </div>
+             `;
+             
+             resultDiv.innerHTML = html;
+             resultDiv.style.display = 'block';
+         }
+
+         // 测试存储转换 (使用预设文件)
+         function testStorageConversion() {
+             showLoading();
+             
+             // 创建一个测试用的文件对象 (模拟)
+             fetch('/api/jodconverter/test')
+                 .then(response => response.json())
+                 .then(testData => {
+                     if (testData.status === 'OK') {
+                         // 如果有测试文件，提示用户选择
+                         const fileInput = document.getElementById('jodFileInput');
+                         if (fileInput.files.length === 0) {
+                             hideLoading();
+                             alert('请先选择一个Word文档进行测试，或使用"☁️ 转换到对象存储"按钮');
+                             return;
+                         }
+                         convertToStorage();
+                     } else {
+                         throw new Error('JODConverter服务不可用');
+                     }
+                 })
+                 .catch(error => {
+                     hideLoading();
+                     showResult({error: 'JODConverter服务检查失败: ' + error.message}, false);
+                 });
+         }
+
+         // 测试下载链接
+         function testDownloadLinks() {
+             const urlInput = prompt('请输入要测试的下载链接URL:', 'http://localhost:8080/api/download/');
+             
+             if (!urlInput) return;
+             
+             showLoading();
+             
+             fetch(urlInput, { method: 'HEAD' })
+                 .then(response => {
+                     const status = response.status;
+                     const statusText = response.statusText;
+                     const contentType = response.headers.get('Content-Type');
+                     const contentLength = response.headers.get('Content-Length');
+                     const contentDisposition = response.headers.get('Content-Disposition');
+                     
+                     const html = `
+                         <div class="quality-result">
+                             <h3>🔗 下载链接测试结果</h3>
+                             
+                             <div class="quality-score">
+                                 <div class="score-circle ${status === 200 ? 'score-excellent' : 'score-poor'}">
+                                     ${status === 200 ? '✅' : '❌'}
+                                 </div>
+                                 <div>
+                                     <h4>HTTP状态: ${status} ${statusText}</h4>
+                                     <p>链接: ${urlInput}</p>
+                                 </div>
+                             </div>
+                             
+                             <div class="quality-details">
+                                 <div class="detail-item">
+                                     <div class="detail-value">${status}</div>
+                                     <div class="detail-label">HTTP状态码</div>
+                                 </div>
+                                 <div class="detail-item">
+                                     <div class="detail-value">${contentType || '未知'}</div>
+                                     <div class="detail-label">文件类型</div>
+                                 </div>
+                                 <div class="detail-item">
+                                     <div class="detail-value">${contentLength ? Math.round(contentLength/1024) + 'KB' : '未知'}</div>
+                                     <div class="detail-label">文件大小</div>
+                                 </div>
+                                 <div class="detail-item">
+                                     <div class="detail-value">${status === 200 ? '可用' : '不可用'}</div>
+                                     <div class="detail-label">链接状态</div>
+                                 </div>
+                             </div>
+                             
+                             ${contentDisposition ? `
+                                 <div style="margin-top: 15px; padding: 10px; background: #e7f3ff; border-radius: 5px;">
+                                     <p><strong>Content-Disposition:</strong> <code>${contentDisposition}</code></p>
+                                 </div>
+                             ` : ''}
+                             
+                             ${status === 200 ? `
+                                 <div style="margin-top: 15px; text-align: center;">
+                                     <button onclick="window.open('${urlInput}', '_blank')" 
+                                             style="background: #28a745; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer;">
+                                         📥 下载文件
+                                     </button>
+                                 </div>
+                             ` : ''}
+                         </div>
+                     `;
+                     
+                     document.getElementById('result').innerHTML = html;
+                     document.getElementById('result').style.display = 'block';
+                     hideLoading();
+                 })
+                 .catch(error => {
+                     showResult({error: '链接测试失败: ' + error.message}, false);
+                 });
+         }
+
+         // 测试单个下载URL
+         function testDownloadUrl(url) {
+             fetch(url, { method: 'HEAD' })
+                 .then(response => {
+                     const status = response.status;
+                     if (status === 200) {
+                         alert(`✅ 链接有效！\n状态: ${status}\n类型: ${response.headers.get('Content-Type')}\n大小: ${Math.round(response.headers.get('Content-Length')/1024)}KB`);
+                     } else {
+                         alert(`❌ 链接无效！\n状态: ${status} ${response.statusText}`);
+                     }
+                 })
+                 .catch(error => {
+                     alert(`❌ 测试失败: ${error.message}`);
+                 });
+         }
+
+         // 显示存储信息
+         function showStorageInfo() {
+             showLoading();
+             
+             // 获取多个相关信息
+             Promise.all([
+                 fetch('/api/jodconverter/status').then(r => r.json()).catch(() => ({})),
+                 // 可以添加更多存储相关的API调用
+             ])
+             .then(([jodStatus]) => {
+                 const html = `
+                     <div class="quality-result">
+                         <h3>📁 对象存储状态信息</h3>
+                         
+                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
+                             <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                                 <h4>🔧 JODConverter状态</h4>
+                                 <p><strong>服务状态:</strong> ${jodStatus.available ? '✅ 可用' : '❌ 不可用'}</p>
+                                 <p><strong>转换器:</strong> ${jodStatus.converterName || 'JODConverter'}</p>
+                                 <p><strong>检查时间:</strong> ${jodStatus.timestamp || new Date().toLocaleString()}</p>
+                             </div>
+                             
+                             <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                                 <h4>💾 存储配置</h4>
+                                 <p><strong>存储类型:</strong> Mock对象存储</p>
+                                 <p><strong>存储路径:</strong> /tmp/word2pdf/storage</p>
+                                 <p><strong>下载基URL:</strong> http://localhost:8080/api/download</p>
+                                 <p><strong>存储桶:</strong> word2pdf-bucket</p>
+                             </div>
+                             
+                             <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                                 <h4>🌐 API接口</h4>
+                                 <p><strong>对象存储转换:</strong> POST /api/jodconverter/convert-to-storage</p>
+                                 <p><strong>文件下载:</strong> GET /api/download/**</p>
+                                 <p><strong>健康检查:</strong> GET /api/jodconverter/health</p>
+                                 <p><strong>状态查询:</strong> GET /api/jodconverter/status</p>
+                             </div>
+                         </div>
+                         
+                         <div style="margin-top: 20px; padding: 20px; background: #e7f3ff; border-radius: 10px;">
+                             <h4>📋 使用说明</h4>
+                             <ol style="margin-left: 20px;">
+                                 <li>选择Word文档(.docx或.doc格式)</li>
+                                 <li>点击"☁️ 转换到对象存储"按钮</li>
+                                 <li>等待转换完成，获得下载链接</li>
+                                 <li>使用下载链接访问PDF文件</li>
+                                 <li>链接支持直接在浏览器中打开或下载</li>
+                             </ol>
+                         </div>
+                         
+                         <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 8px;">
+                             <h4>⚡ 快速操作</h4>
+                             <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+                                 <button onclick="testJODConverterEndpoints()" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">
+                                     测试API端点
+                                 </button>
+                                 <button onclick="testDownloadLinks()" style="background: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">
+                                     测试下载链接
+                                 </button>
+                                 <button onclick="convertToStorage()" style="background: #fd79a8; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">
+                                     开始转换
+                                 </button>
+                             </div>
+                         </div>
+                     </div>
+                 `;
+                 
+                 document.getElementById('result').innerHTML = html;
+                 document.getElementById('result').style.display = 'block';
+                 hideLoading();
+             })
+             .catch(error => {
+                 showResult({error: '获取存储信息失败: ' + error.message}, false);
+             });
+         }
+
+         // 复制到剪贴板
+         function copyToClipboard(text) {
+             navigator.clipboard.writeText(text).then(function() {
+                 alert('✅ 链接已复制到剪贴板！');
+             }, function(err) {
+                 // 降级方案
+                 const textArea = document.createElement('textarea');
+                 textArea.value = text;
+                 document.body.appendChild(textArea);
+                 textArea.select();
+                 try {
+                     document.execCommand('copy');
+                     alert('✅ 链接已复制到剪贴板！');
+                 } catch (err) {
+                     alert('❌ 复制失败，请手动复制链接');
+                 }
+                 document.body.removeChild(textArea);
+             });
+         }
     </script>
 </body>
 </html> 

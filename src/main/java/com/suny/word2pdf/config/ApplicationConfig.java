@@ -13,13 +13,14 @@ import java.nio.file.Paths;
 
 /**
  * 应用配置类
+ * 配置文档转换相关的参数和初始化设置
  * 
  * @author suny
  */
-@Data
-@Slf4j
 @Configuration
 @ConfigurationProperties(prefix = "app")
+@Data
+@Slf4j
 public class ApplicationConfig {
     
     /**
@@ -30,7 +31,7 @@ public class ApplicationConfig {
     /**
      * 临时文件目录
      */
-    private String tempDir = "/tmp/word2pdf";
+    private String tempDir = "/Users/sunyuan/Desktop/inbox/word2pdf";
     
     /**
      * 转换超时时间（毫秒）
@@ -38,26 +39,36 @@ public class ApplicationConfig {
     private Long conversionTimeout = 30000L;
     
     /**
-     * 初始化配置
+     * 应用初始化
+     * 设置字符编码确保中文支持
      */
     @PostConstruct
-    public void init() {
-        log.info("Initializing application configuration");
-        validateLibreOfficeInstallation();
+    public void initializeApplication() {
+        // 确保字符编码正确设置
+        configureCharacterEncoding();
+        
+        // 创建临时目录
         createTempDirectory();
+        
         log.info("Application configuration initialized successfully");
+        log.info("Temp directory: {}", tempDir);
+        log.info("LibreOffice path: {}", libreOfficePath);
     }
     
     /**
-     * 验证LibreOffice安装
+     * 配置字符编码以支持中文
      */
-    private void validateLibreOfficeInstallation() {
-        File libreOfficeFile = new File(libreOfficePath);
-        if (!libreOfficeFile.exists() || !libreOfficeFile.canExecute()) {
-            log.warn("LibreOffice not found at path: {}", libreOfficePath);
-            log.warn("LibreOffice conversion will not be available");
-        } else {
-            log.info("LibreOffice found at path: {}", libreOfficePath);
+    private void configureCharacterEncoding() {
+        try {
+            // 设置系统字符编码属性
+            System.setProperty("file.encoding", "UTF-8");
+            System.setProperty("sun.jnu.encoding", "UTF-8");
+            System.setProperty("user.language", "zh");
+            System.setProperty("user.country", "CN");
+            
+            log.debug("Character encoding configured for Chinese support");
+        } catch (Exception e) {
+            log.warn("Failed to configure character encoding: {}", e.getMessage());
         }
     }
     
@@ -66,16 +77,17 @@ public class ApplicationConfig {
      */
     private void createTempDirectory() {
         try {
-            Path tempPath = Paths.get(tempDir);
-            if (!Files.exists(tempPath)) {
-                Files.createDirectories(tempPath);
-                log.info("Created temp directory: {}", tempDir);
-            } else {
-                log.info("Temp directory already exists: {}", tempDir);
+            File tempDirectory = new File(tempDir);
+            if (!tempDirectory.exists()) {
+                boolean created = tempDirectory.mkdirs();
+                if (created) {
+                    log.info("Created temp directory: {}", tempDir);
+                } else {
+                    log.warn("Failed to create temp directory: {}", tempDir);
+                }
             }
         } catch (Exception e) {
-            log.error("Failed to create temp directory: {}", tempDir, e);
-            throw new RuntimeException("Failed to create temp directory", e);
+            log.error("Error creating temp directory: {}", e.getMessage());
         }
     }
 } 

@@ -24,6 +24,10 @@
 - ✅ 支持多种中文字体映射（宋体、黑体、微软雅黑、苹方等）
 - ✅ 字体检测日志记录，便于调试
 - ✅ 解决中文字符显示为"#"的问题
+- ✅ 增强字符编码配置，确保UTF-8支持
+- ✅ 添加字体映射降级策略，提高转换成功率
+- ✅ 优化FO设置，改善中文文本渲染质量
+- ✅ 支持跨平台中文字体自动识别
 
 #### LibreOffice转换器
 - ✅ 确认原生中文支持，无需额外配置
@@ -117,7 +121,7 @@
 
 如果您在使用过程中遇到问题或有改进建议，请：
 
-1. 查看 [故障排除](README.md#故障排除) 部分
+1. 查看 [故障排除](../README.md#故障排除) 部分
 2. 检查 [已知问题](https://github.com/sunyuan686/word2pdf/issues)
 3. 提交新的 [Issue](https://github.com/sunyuan686/word2pdf/issues/new)
 4. 参与 [讨论](https://github.com/sunyuan686/word2pdf/discussions)

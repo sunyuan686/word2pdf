@@ -4,12 +4,14 @@
 
 ## 功能特性
 
-- **多技术栈支持**: 支持POI、Docx4j、LibreOffice三种转换方式
+- **多技术栈支持**: 支持POI、Docx4j、LibreOffice、JODConverter四种转换方式
+- **JODConverter集成**: 新增企业级JODConverter转换器，提供高性能和稳定性
 - **性能对比**: 提供详细的转换性能统计和对比
 - **RESTful API**: 提供完整的REST API接口
 - **详细日志**: 完整的转换过程日志记录
 - **文件管理**: 自动的临时文件管理和清理
 - **错误处理**: 完善的异常处理机制
+- **健康检查**: 提供转换器可用性检查接口
 
 ## 技术栈
 
@@ -18,6 +20,7 @@
 - **Apache POI**: Microsoft Office文档处理
 - **Docx4j**: OpenXML文档处理
 - **LibreOffice**: 开源办公套件转换
+- **JODConverter**: 企业级文档转换库，基于LibreOffice UNO API
 - **Maven**: 项目构建和依赖管理
 
 ## 系统要求
@@ -74,7 +77,7 @@ GET /convert/converters
 
 **响应示例:**
 ```json
-["POI", "Docx4j", "LibreOffice"]
+["POI", "Docx4j", "LibreOffice", "JODConverter"]
 ```
 
 ### 2. 使用指定转换器转换文件
@@ -85,7 +88,7 @@ Content-Type: multipart/form-data
 ```
 
 **参数:**
-- `converter`: 转换器名称 (POI/Docx4j/LibreOffice)
+- `converter`: 转换器名称 (POI/Docx4j/LibreOffice/JODConverter)
 - `file`: Word文档文件 (.docx/.doc)
 
 **响应示例:**
@@ -158,6 +161,51 @@ GET /convert/history
 DELETE /convert/history
 ```
 
+### 7. JODConverter 专用接口
+
+#### 7.1 JODConverter 转换
+
+```bash
+POST /jodconverter/convert
+Content-Type: multipart/form-data
+```
+
+**参数:**
+- `file`: Word文档文件 (.docx/.doc)
+
+**响应:**
+- 直接返回PDF文件流
+- 响应头包含转换时间、文件大小等信息
+
+#### 7.2 JODConverter 健康检查
+
+```bash
+GET /jodconverter/health
+```
+
+**响应示例:**
+```json
+{
+  "status": "UP",
+  "message": "JODConverter is available and ready"
+}
+```
+
+#### 7.3 JODConverter 状态信息
+
+```bash
+GET /jodconverter/status
+```
+
+**响应示例:**
+```json
+{
+  "available": true,
+  "converterName": "JODConverter",
+  "timestamp": "2024-01-15T10:30:45"
+}
+```
+
 ## 使用示例
 
 ### curl 命令示例
@@ -177,6 +225,14 @@ curl -X POST http://localhost:8080/api/convert/compare \
 # 4. 下载转换后的PDF
 curl -X GET http://localhost:8080/api/download/document_abc123.pdf \
   -o converted.pdf
+
+# 5. 使用JODConverter转换文档（推荐）
+curl -X POST http://localhost:8080/api/jodconverter/convert \
+  -F "file=@/path/to/your/document.docx" \
+  -o jodconverter_output.pdf
+
+# 6. 检查JODConverter健康状态
+curl -X GET http://localhost:8080/api/jodconverter/health
 ```
 
 ### Java 客户端示例
@@ -198,8 +254,9 @@ ResponseEntity<ConversionResult> response = restTemplate.postForEntity(
 | 转换器 | 优势 | 劣势 | 适用场景 | 中文支持 |
 |--------|------|------|----------|----------|
 | **POI** | - 纯Java实现<br>- 无外部依赖<br>- 格式支持好 | - 转换速度较慢<br>- 内存占用较高 | 简单文档转换 | ✅ 已优化字体配置 |
-| **Docx4j** | - 功能强大<br>- 格式保真度高<br>- 可定制性强 | - 学习曲线陡峭<br>- 复杂文档可能出错 | 复杂格式文档 | ✅ 已配置中文字体映射 |
+| **Docx4j** | - 功能强大<br>- 格式保真度高<br>- 可定制性强 | - 学习曲线陡峭<br>- 复杂文档可能出错 | 复杂格式文档 | ✅ 增强中文支持<br>✅ 智能字体映射<br>✅ 跨平台兼容 |
 | **LibreOffice** | - 转换质量最高<br>- 格式支持最全<br>- 速度较快 | - 需要安装LibreOffice<br>- 系统依赖性强 | 生产环境推荐 | ✅ 原生支持中文 |
+| **JODConverter** | - 企业级稳定性<br>- 高并发性能<br>- 进程池管理<br>- Spring Boot集成 | - 需要LibreOffice<br>- 配置相对复杂 | 高并发生产环境 | ✅ 原生支持中文 |
 
 ## 性能调优
 
@@ -227,6 +284,22 @@ spring.servlet.multipart.max-request-size=200MB
 ```properties
 # LibreOffice 路径配置
 app.libreoffice.path=/opt/libreoffice/program/soffice
+```
+
+### 4. JODConverter 性能优化
+
+```properties
+# JODConverter 高性能配置
+jodconverter.local.enabled=true
+jodconverter.local.office-home=/Applications/LibreOffice.app/Contents
+jodconverter.local.port-numbers=2002,2003,2004,2005,2006
+jodconverter.local.process-timeout=120000
+jodconverter.local.process-retry-interval=250
+jodconverter.local.max-tasks-per-process=200
+
+# 高并发环境配置
+jodconverter.local.pool-size=5
+jodconverter.local.max-pool-size=10
 ```
 
 ## 监控和日志
@@ -331,6 +404,26 @@ DEBUG c.s.w.c.impl.Docx4jWordToPdfConverter  : Mapped font '宋体' to 'Arial Un
    日志信息: "No suitable Chinese font found"
    解决方案: 
    - macOS: brew install --cask font-microsoft-office
+   ```
+
+7. **JODConverter 启动失败**
+   ```
+   错误信息: "JODConverter is not available"
+   解决方案:
+   - 检查 LibreOffice 安装路径配置
+   - 确认 jodconverter.local.office-home 配置正确
+   - 检查端口是否被占用
+   - 验证 LibreOffice 可执行权限
+   ```
+
+8. **JODConverter 端口冲突**
+   ```
+   错误信息: "Port already in use"
+   解决方案:
+   - 修改 jodconverter.local.port-numbers 配置
+   - 杀死占用端口的进程: lsof -ti:2002 | xargs kill
+   - 重启应用服务
+   ```
    - 手动下载安装Arial Unicode MS字体
    - 使用LibreOffice转换器(原生支持中文)
    ```

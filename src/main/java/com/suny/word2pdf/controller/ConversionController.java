@@ -257,15 +257,27 @@ public class ConversionController {
             Map<String, Object> comparisonResults = new HashMap<>();
             File tempWordFile = saveUploadedFile(file, "word_");
             
+            // 新增：记录生成的PDF文件信息
+            Map<String, Object> generatedFiles = new HashMap<>();
+            
             try {
                 for (String converter : converters) {
                     try {
-                        // 转换文档
-                        ConversionResult convertResult = conversionService.convertWordToPdf(file, converter);
+                        // 转换文档 - 在文件名中包含转换器名称
+                        ConversionResult convertResult = conversionService.convertWordToPdf(file, converter, true);
                         
                         if (convertResult.getSuccess()) {
                             String fileName = convertResult.getDownloadUrl().substring("/api/download/".length());
                             File pdfFile = new File(applicationConfig.getTempDir(), fileName);
+                            
+                            // 记录生成的PDF文件信息
+                            Map<String, Object> fileInfo = new HashMap<>();
+                            fileInfo.put("fileName", fileName);
+                            fileInfo.put("downloadUrl", convertResult.getDownloadUrl());
+                            fileInfo.put("fullDownloadUrl", "http://localhost:8080" + convertResult.getDownloadUrl());
+                            fileInfo.put("fileSize", pdfFile.exists() ? pdfFile.length() : 0);
+                            fileInfo.put("storagePath", pdfFile.getAbsolutePath());
+                            generatedFiles.put(converter, fileInfo);
                             
                             // 验证质量
                             QualityValidationResult validationResult = qualityValidator.validatePdfQuality(
@@ -274,6 +286,7 @@ public class ConversionController {
                             Map<String, Object> converterResult = new HashMap<>();
                             converterResult.put("conversion", convertResult);
                             converterResult.put("validation", validationResult);
+                            converterResult.put("fileInfo", fileInfo);  // 添加文件信息
                             
                             comparisonResults.put(converter, converterResult);
                             
@@ -304,6 +317,14 @@ public class ConversionController {
                         result.put("textSimilarity", validation.getTextSimilarity());
                         result.put("chineseAccuracy", validation.getChineseCharacterAccuracy());
                         
+                        // 添加下载信息到排名中
+                        @SuppressWarnings("unchecked")
+                        Map<String, Object> fileInfo = (Map<String, Object>) data.get("fileInfo");
+                        if (fileInfo != null) {
+                            result.put("downloadUrl", fileInfo.get("downloadUrl"));
+                            result.put("fileSize", fileInfo.get("fileSize"));
+                        }
+                        
                         return result;
                     })
                     .sorted((a, b) -> Double.compare((Double) b.get("score"), (Double) a.get("score")))
@@ -313,6 +334,8 @@ public class ConversionController {
                 finalResult.put("results", comparisonResults);
                 finalResult.put("ranking", qualityRanking);
                 finalResult.put("summary", createQualitySummary(qualityRanking));
+                finalResult.put("generatedFiles", generatedFiles);  // 新增：生成的文件清单
+                finalResult.put("storageInfo", createStorageInfo());  // 新增：存储信息
                 
                 return ResponseEntity.ok(finalResult);
                 
@@ -353,6 +376,18 @@ public class ConversionController {
         }
         
         return summary;
+    }
+    
+    /**
+     * 创建存储信息
+     */
+    private Map<String, Object> createStorageInfo() {
+        Map<String, Object> storageInfo = new HashMap<>();
+        storageInfo.put("tempDirectory", applicationConfig.getTempDir());
+        storageInfo.put("absolutePath", new File(applicationConfig.getTempDir()).getAbsolutePath());
+        storageInfo.put("downloadBaseUrl", "http://localhost:8080/api/download/");
+        storageInfo.put("note", "PDF文件存储在临时目录中，可通过downloadUrl直接下载");
+        return storageInfo;
     }
     
     /**
