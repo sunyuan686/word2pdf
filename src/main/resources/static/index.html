@@ -621,6 +621,9 @@
             } else if (data.downloadUrl || data.objectKey) {
                 // 显示对象存储结果
                 showStorageResult(data);
+            } else if (data.success !== undefined && data.method && data.downloadUrl) {
+                // 显示ConversionResult格式的转换结果
+                showConversionResult(data);
             } else {
                 // 显示普通转换结果
                 resultDiv.textContent = JSON.stringify(data, null, 2);
@@ -752,6 +755,89 @@
                     <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
                         <h4>📋 详细结果数据</h4>
                         <pre style="font-size: 0.9rem; max-height: 300px; overflow-y: auto;">${JSON.stringify(data.results, null, 2)}</pre>
+                    </div>
+                </div>
+            `;
+            
+            resultDiv.innerHTML = html;
+            resultDiv.style.display = 'block';
+        }
+
+        // 显示ConversionResult格式的转换结果
+        function showConversionResult(data) {
+            const resultDiv = document.getElementById('result');
+            
+            if (!data.success) {
+                // 显示错误结果
+                const html = `
+                    <div style="background: #f8d7da; color: #721c24; padding: 20px; border-radius: 10px;">
+                        <h4>❌ 转换失败</h4>
+                        <p><strong>转换器:</strong> ${data.method}</p>
+                        <p><strong>错误信息:</strong> ${data.errorMessage}</p>
+                        <p><strong>耗时:</strong> ${data.duration}ms</p>
+                    </div>
+                `;
+                resultDiv.innerHTML = html;
+                resultDiv.style.display = 'block';
+                return;
+            }
+            
+            // 显示成功结果
+            const html = `
+                <div class="quality-result">
+                    <h3>✅ ${data.method} 转换成功</h3>
+                    
+                    <div class="quality-score">
+                        <div class="score-circle score-excellent">
+                            📄
+                        </div>
+                        <div>
+                            <h4>PDF文档已生成</h4>
+                            <p>转换器: ${data.method}</p>
+                            <p>耗时: ${data.duration}ms</p>
+                        </div>
+                    </div>
+                    
+                    <div class="quality-details">
+                        <div class="detail-item">
+                            <div class="detail-value">${Math.round(data.originalFileSize/1024)}KB</div>
+                            <div class="detail-label">原文件大小</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-value">${Math.round(data.pdfFileSize/1024)}KB</div>
+                            <div class="detail-label">PDF文件大小</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-value">${data.duration}ms</div>
+                            <div class="detail-label">转换耗时</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-value">${data.method}</div>
+                            <div class="detail-label">转换器</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px; text-align: center;">
+                        <a href="${data.downloadUrl}" 
+                           style="background: #4facfe; color: white; padding: 15px 30px; 
+                                  text-decoration: none; border-radius: 8px; display: inline-block; 
+                                  font-size: 1.1rem; font-weight: bold; margin-right: 10px;">
+                            📥 下载PDF文件
+                        </a>
+                        <button onclick="testDownloadUrl('${data.downloadUrl}')" 
+                                style="background: #17a2b8; color: white; border: none; padding: 15px 30px; 
+                                       border-radius: 8px; cursor: pointer; font-size: 1.1rem; font-weight: bold;">
+                            🔍 测试下载链接
+                        </button>
+                    </div>
+                    
+                    <div style="margin-top: 15px; padding: 10px; background: #e7f3ff; border-radius: 8px;">
+                        <p><strong>下载链接:</strong> <code>${data.downloadUrl}</code></p>
+                        <button onclick="copyToClipboard('${data.downloadUrl}')" 
+                                style="background: #6c757d; color: white; border: none; padding: 5px 10px; 
+                                       border-radius: 5px; cursor: pointer; margin-top: 5px;">
+                            📋 复制链接
+                        </button>
                     </div>
                 </div>
             `;
@@ -894,37 +980,7 @@
                 method: 'POST',
                 body: formData
             })
-            .then(response => {
-                if (response.ok) {
-                    // JODConverter 返回的是PDF文件流
-                    return response.blob().then(blob => {
-                        const url = window.URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `jodconverter_${new Date().getTime()}.pdf`;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        window.URL.revokeObjectURL(url);
-                        
-                        // 显示成功信息
-                        const conversionTime = response.headers.get('X-Conversion-Time');
-                        const fileSize = response.headers.get('X-File-Size');
-                        
-                        return {
-                            success: true,
-                            converter: 'JODConverter',
-                            message: 'PDF文件已自动下载',
-                            conversionTime: conversionTime ? `${conversionTime}ms` : '未知',
-                            fileSize: fileSize ? `${Math.round(fileSize/1024)}KB` : '未知'
-                        };
-                    });
-                } else {
-                    return response.json().then(error => {
-                        throw new Error(error.error || 'JODConverter 转换失败');
-                    });
-                }
-            })
+            .then(response => response.json())
             .then(data => {
                 showResult(data, data.success);
             })

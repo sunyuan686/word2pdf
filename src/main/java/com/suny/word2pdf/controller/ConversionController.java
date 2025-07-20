@@ -147,7 +147,6 @@ public class ConversionController {
         log.info("开始PDF质量验证: converter={}", converterName);
         
         try {
-            // 保存上传的文件到临时目录
             File tempWordFile = saveUploadedFile(wordFile, "word_");
             File tempPdfFile = saveUploadedFile(pdfFile, "pdf_");
             
@@ -159,7 +158,6 @@ public class ConversionController {
                 return ResponseEntity.ok(result);
                 
             } finally {
-                // 清理临时文件
                 tempWordFile.delete();
                 tempPdfFile.delete();
             }

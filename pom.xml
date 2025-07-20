@@ -107,12 +107,6 @@
             <version>1.5</version>
         </dependency>
 
-        <!-- MinIO Client -->
-        <dependency>
-            <groupId>io.minio</groupId>
-            <artifactId>minio</artifactId>
-            <version>8.5.7</version>
-        </dependency>
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>

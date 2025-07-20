@@ -26,12 +26,12 @@ public class ApplicationConfig {
     /**
      * LibreOffice可执行文件路径
      */
-    private String libreOfficePath = "/Applications/LibreOffice.app/Contents/MacOS/soffice";
+    private String libreOfficePath;
     
     /**
      * 临时文件目录
      */
-    private String tempDir = "/Users/sunyuan/Desktop/inbox/word2pdf";
+    private String tempDir;
     
     /**
      * 转换超时时间（毫秒）

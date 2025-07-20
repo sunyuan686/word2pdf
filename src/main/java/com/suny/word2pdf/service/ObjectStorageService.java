@@ -56,14 +56,7 @@ public interface ObjectStorageService {
      */
     boolean deleteFile(String objectKey);
     
-    /**
-     * 检查文件是否存在
-     * 
-     * @param objectKey 对象存储中的文件键名
-     * @return 文件是否存在
-     */
-    boolean fileExists(String objectKey);
-    
+
     /**
      * 获取存储桶名称
      * 

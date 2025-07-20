@@ -140,7 +140,7 @@ public class LibreOfficeWordToPdfConverter implements WordToPdfConverter {
         // 设置环境变量优化LibreOffice性能和质量
         processBuilder.environment().put("SAL_USE_VCLPLUGIN", "svp");
         processBuilder.environment().put("SAL_DISABLE_OPENCL", "true");
-        processBuilder.environment().put("SAL_DISABLE_HUNSPELL", "true");  // 禁用拼写检查提升性能
+        processBuilder.environment().put("SAL_DISABLE_HUNSPELL", "true");
         
         return processBuilder;
     }

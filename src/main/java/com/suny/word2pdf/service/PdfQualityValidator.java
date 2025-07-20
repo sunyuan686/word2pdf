@@ -36,8 +36,8 @@ public class PdfQualityValidator {
     private static final Pattern CHINESE_PATTERN = Pattern.compile("[\u4e00-\u9fff]+");
     
     // 质量阈值
-    private static final double MIN_TEXT_SIMILARITY = 0.85; // 85%文本相似度
-    private static final double MIN_CHINESE_ACCURACY = 0.95; // 95%中文准确度
+    private static final double MIN_TEXT_SIMILARITY = 0.85;
+    private static final double MIN_CHINESE_ACCURACY = 0.95;
     
     /**
      * 验证PDF质量

@@ -131,12 +131,7 @@ public class MockObjectStorageService implements ObjectStorageService {
         }
     }
     
-    @Override
-    public boolean fileExists(String objectKey) {
-        Path filePath = Paths.get(basePath, sanitizeObjectKey(objectKey));
-        return Files.exists(filePath);
-    }
-    
+
     @Override
     public String getBucketName() {
         return bucketName;
