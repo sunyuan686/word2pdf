@@ -3,8 +3,6 @@ package com.suny.word2pdf.converter.impl;
 import com.suny.word2pdf.converter.WordToPdfConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.jodconverter.core.DocumentConverter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 

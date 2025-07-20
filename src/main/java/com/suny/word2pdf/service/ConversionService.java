@@ -188,7 +188,7 @@ public class ConversionService {
                 duration,
                 file.getSize(),
                 outputFile.length(),
-                "/api/download/" + outputFileName
+                outputFile.getAbsolutePath()
         );
 
         recordConversionResult(result);

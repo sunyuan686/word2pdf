@@ -76,12 +76,7 @@
             <version>1.17</version>
         </dependency>
 
-        <!-- PDFBox for PDF analysis and validation -->
-        <dependency>
-            <groupId>org.apache.pdfbox</groupId>
-            <artifactId>pdfbox</artifactId>
-            <version>2.0.30</version>
-        </dependency>
+
 
         <!-- JODConverter dependencies for LibreOffice integration -->
         <dependency>
