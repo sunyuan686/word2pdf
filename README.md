@@ -6,6 +6,8 @@
 
 - **多技术栈支持**: 支持POI、Docx4j、LibreOffice、JODConverter四种转换方式
 - **JODConverter集成**: 新增企业级JODConverter转换器，提供高性能和稳定性
+- **完美中文支持**: 三种转换器全部支持中文，解决乱码问题
+- **Docker 部署**: 内置丰富中文字体，一键部署，开箱即用
 - **性能对比**: 提供详细的转换性能统计和对比
 - **RESTful API**: 提供完整的REST API接口
 - **详细日志**: 完整的转换过程日志记录
@@ -353,6 +355,29 @@ grep "ERROR" logs/application.log
 ### LibreOffice转换器
 
 **优势**: 原生支持中文，无需额外配置
+
+### Docker 中文字体支持 🐳
+
+**全新特性**: Docker 镜像内置丰富的中文字体包，彻底解决部署环境的字体问题
+
+#### 内置字体
+- **思源字体系列**（Noto Sans CJK）- Google 设计，高质量
+- **文泉驿字体系列**（WenQuanYi）- 微米黑、正黑
+- **AR PL 字体系列**（AR PL UKai、UMing）- 楷书、明体
+
+#### 部署优势
+- ✅ **开箱即用**：无需手动安装字体，一键部署
+- ✅ **环境一致**：所有环境都有相同的字体配置
+- ✅ **分层优化**：Docker 缓存优化，避免重复下载
+- ✅ **自动验证**：启动时自动检查字体配置
+
+```bash
+# 快速部署
+docker-compose up -d
+
+# 验证字体配置
+./shell/test_docker_chinese_fonts.sh
+```
 
 ### 中文字体检测日志
 

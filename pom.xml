@@ -29,6 +29,35 @@
     <properties>
         <java.version>21</java.version>
     </properties>
+
+    <!-- 添加阿里云镜像仓库 -->
+    <repositories>
+        <repository>
+            <id>aliyunmaven</id>
+            <name>Aliyun Maven</name>
+            <url>https://maven.aliyun.com/repository/public</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>aliyunmaven</id>
+            <name>Aliyun Maven</name>
+            <url>https://maven.aliyun.com/repository/public</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+    
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
