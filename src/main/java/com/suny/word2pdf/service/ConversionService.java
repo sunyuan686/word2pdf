@@ -43,7 +43,7 @@ public class ConversionService {
      * @return 转换结果
      */
     public ConversionResult convertWordToPdf(MultipartFile file, String converterName) {
-        return convertWordToPdf(file, converterName, false);
+        return convertWordToPdf(file, converterName, true);
     }
 
     /**
@@ -118,22 +118,7 @@ public class ConversionService {
                 .toList();
     }
 
-    /**
-     * 获取转换历史统计
-     *
-     * @return 转换历史统计
-     */
-    public Map<String, List<ConversionResult>> getConversionHistory() {
-        return conversionHistory;
-    }
 
-    /**
-     * 清理转换历史
-     */
-    public void clearConversionHistory() {
-        conversionHistory.clear();
-        log.info("Conversion history cleared");
-    }
 
     /**
      * 查找指定名称的转换器
@@ -148,18 +133,6 @@ public class ConversionService {
                 .orElse(null);
     }
 
-    /**
-     * 执行转换
-     *
-     * @param file      文件
-     * @param converter 转换器
-     * @param startTime 开始时间
-     * @return 转换结果
-     * @throws Exception 异常
-     */
-    private ConversionResult performConversion(MultipartFile file, WordToPdfConverter converter, long startTime) throws Exception {
-        return performConversion(file, converter, startTime, false);
-    }
 
     /**
      * 执行转换
@@ -172,8 +145,7 @@ public class ConversionService {
      * @throws Exception 异常
      */
     private ConversionResult performConversion(MultipartFile file, WordToPdfConverter converter, long startTime, boolean includeConverterInName) throws Exception {
-        String outputFileName = generateOutputFileName(file.getOriginalFilename(), 
-                includeConverterInName ? converter.getConverterName() : null);
+        String outputFileName = generateOutputFileName(file.getOriginalFilename(), includeConverterInName ? converter.getConverterName() : null);
         File outputFile = Paths.get(applicationConfig.getTempDir(), outputFileName).toFile();
 
         log.debug("Converting file to: {}", outputFile.getAbsolutePath());
@@ -199,15 +171,6 @@ public class ConversionService {
         return result;
     }
 
-    /**
-     * 生成输出文件名
-     *
-     * @param originalFileName 原文件名
-     * @return 输出文件名
-     */
-    private String generateOutputFileName(String originalFileName) {
-        return generateOutputFileName(originalFileName, null);
-    }
 
     /**
      * 生成输出文件名

@@ -88,6 +88,7 @@ public class JodConverterWordToPdfConverter implements WordToPdfConverter {
         }
     }
 
+
     @Override
     public boolean isAvailable() {
         boolean available = documentConverter != null;

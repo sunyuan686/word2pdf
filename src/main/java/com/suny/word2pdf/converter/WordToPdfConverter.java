@@ -25,7 +25,8 @@ public interface WordToPdfConverter {
      * @throws Exception 转换异常
      */
     void convert(InputStream inputStream, File outputFile) throws Exception;
-    
+
+
     /**
      * 检查是否支持该转换器
      * 

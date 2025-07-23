@@ -86,7 +86,6 @@ public class PoiWordToPdfConverter implements WordToPdfConverter {
             throw new RuntimeException("POI conversion failed: " + e.getMessage(), e);
         }
     }
-    
     /**
      * 创建增强的PDF选项
      */

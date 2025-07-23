@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  word2pdf:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    platform: linux/arm64
+    image: word2pdf:latest
+    container_name: word2pdf-service
+    ports:
+      - "8080:8080"
+    environment:
+      # JVM 基础参数，使用 G1GC
+      - JAVA_OPTS=-Xms1g -Xmx4g -XX:+UseG1GC -Dfile.encoding=UTF-8
+      - TZ=Asia/Shanghai
+    volumes:
+      # 挂载外部配置文件，实现配置与镜像分离
+      - ./config/application-docker.properties:/app/application-docker.properties:ro
+      # 持久化日志
+      - ./logs:/app/logs
+      # 持久化转换结果
+      - ./result:/app/result
+    restart: unless-stopped
+
+networks:
+  default:
+    name: word2pdf-network
+    driver: bridge 
