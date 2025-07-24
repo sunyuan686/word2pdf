@@ -120,6 +120,8 @@ RUN echo '#!/bin/bash' > /app/start.sh && \
 USER root
 RUN chown -R appuser:appuser /app && chmod +x /app/start.sh
 
+RUN mkdir -p /temp/libreoffice && chmod 777 /temp/libreoffice
+
 # 切换到应用用户
 USER appuser
 
